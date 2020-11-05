@@ -1,0 +1,12 @@
+### Python ###
+__pycache__/
+*.py[cod]
+*$py.class
+
+### Spyder Projects ###
+.spyproject/
+
+### VSCode ###
+.vscode
+settings.json
+*.code-workspace
