@@ -1,4 +1,4 @@
-from target import Target
+from .target import Target
 
 class LMB():
     """
