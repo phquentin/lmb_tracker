@@ -1,4 +1,4 @@
-class PHD():
+class GM():
     """
     Implementation of the PHD using Gaussian mixtures
     """
@@ -6,13 +6,13 @@ class PHD():
     def __init__(self):
         pass
 
-    def _predict_phd(self):
+    def predict(self):
         """
         Predict Gaussian Mixture state components (m, P) of all tracks
         """
         pass
 
-    def _correct_phd(self, z):
+    def correct(self, z):
         """
         Update PHD with new measurements and calculate log-likelihood of track-measurement associations
 
@@ -22,7 +22,7 @@ class PHD():
         """
         pass
 
-    def _merge_phd(self):
+    def merge(self):
         """
         Merge Gaussian Mixture components which are closer than a defined threshold
         """
