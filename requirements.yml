@@ -2,5 +2,5 @@ name: lmb
 channels:
   - conda-forge
 dependencies:
-  - python
+  - python=3.8.6
   - numpy

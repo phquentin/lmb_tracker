@@ -1,10 +1,12 @@
+from .parameters import Parameters
 from .target import Target
 
 class LMB():
     """
     Main class of the labeled multi bernoulli filter implementation.
     """
-    def __init__(self):
+    def __init__(self, params=None):
+        self.params = params if params else Parameters()
         self.targets = [] # list of currently tracked targets
 
     def update(self,z):
