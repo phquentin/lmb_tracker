@@ -1,9 +1,11 @@
+from target import Target
+
 class LMB():
     """
     Main class of the labeled multi bernoulli filter implementation.
     """
     def __init__(self):
-        pass
+        self.targets = [] # list of currently tracked targets
 
     def update(self,z):
         """
@@ -59,5 +61,11 @@ class LMB():
 
         Computes the most likely number of tracks and selects for this number of tracks the Gaussian
         mixture component with the highest weight of the tracks with the highest existence probability.
+        """
+        pass
+
+    def _spawn(self):
+        """
+        Spawn new target instances
         """
         pass
