@@ -1,11 +1,9 @@
-import phd
-
-class LMB(phd.PHD):
+class LMB():
     """
-    Implementation of the labeled multi bernoulli filter.
+    Main class of the labeled multi bernoulli filter implementation.
     """
     def __init__(self):
-        super().__init__()
+        pass
 
     def update(self,z):
         """
@@ -44,7 +42,6 @@ class LMB(phd.PHD):
         z: measurement object (class to be implemented)
         """
         self._prune()
-        self._merge_phd()
 
     def _prune(self):
         """
