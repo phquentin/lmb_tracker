@@ -2,7 +2,7 @@ import numpy as np
 from dataclasses import dataclass
 
 @dataclass (frozen=True)
-class Parameters():
+class Tracker_Parameters():
     """
     Class containing the overal tracker parameters
     """
@@ -21,3 +21,9 @@ class Parameters():
                                 [0, 5, 0, 10],
                                 [10, 0, 20, 0],
                                 [0, 10, 0, 20]], dtype='f4')
+
+@dataclass (frozen=True) 
+class Sim_Parameters():
+    """
+    Class containing the overal simulation parameters
+    """                      

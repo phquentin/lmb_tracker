@@ -1,4 +1,4 @@
-from .parameters import Parameters
+from .parameters import Tracker_Parameters
 from .target import Target
 
 class LMB():
