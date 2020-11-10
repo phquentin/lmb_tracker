@@ -1,5 +1,6 @@
 from .parameters import Parameters
 from .target import Target
+from .gm import GM
 
 class LMB():
     """
@@ -8,6 +9,7 @@ class LMB():
     def __init__(self, params=None):
         self.params = params if params else Parameters()
         self.targets = [] # list of currently tracked targets
+        self.targets.append(Target("0", pdf=GM(params=params)))
 
     def update(self,z):
         """
@@ -31,9 +33,10 @@ class LMB():
         """
         Prediction step of LMB tracker
 
-        Predicts tracker states and existence probabilities
+        Predicts states and existence probabilities of every currently tracked target
         """
-        pass
+        for target in self.targets:
+            target.predict()
 
     def correct(self, z):
         """
@@ -45,6 +48,11 @@ class LMB():
         ----------
         z: measurement object (class to be implemented)
         """
+        ## 1. Create target-measurement associations and calculate each log_likelihood
+        ## 2. Compute hypothesis weights and resulting existence probability of each target
+        # for target in self.targets:
+        #    target.correct()
+        ## 3. Prune targets
         self._prune()
 
     def _prune(self):
