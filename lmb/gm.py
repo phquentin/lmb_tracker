@@ -38,7 +38,7 @@ class GM():
         # init list of mixture components with one Gaussian
         self.mc = np.zeros(1, dtype=self.dtype_mc)
         self.mc[0]['log_w'] = 1.0
-        self.mc[0]['x'] = x0 if x0 else np.zeros(self.dim_x)
+        self.mc[0]['x'] = x0 if x0 is not None else np.zeros(self.dim_x)
         self.mc[0]['P'] = self.params.P_init
 
     def predict(self):
