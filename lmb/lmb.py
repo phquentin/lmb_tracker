@@ -1,3 +1,5 @@
+import numpy as np
+
 from .parameters import Parameters
 from .target import Target
 from .gm import GM
@@ -8,6 +10,7 @@ class LMB():
     """
     def __init__(self, params=None):
         self.params = params if params else Parameters()
+        self.log_p_survival = np.log(self.params.p_survival)
         self.targets = [] # list of currently tracked targets
         self.targets.append(Target("0", pdf=GM(params=params)))
 
@@ -36,7 +39,7 @@ class LMB():
         Predicts states and existence probabilities of every currently tracked target
         """
         for target in self.targets:
-            target.predict()
+            target.predict(self.log_p_survival)
 
     def correct(self, z):
         """

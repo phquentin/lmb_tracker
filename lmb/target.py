@@ -5,18 +5,23 @@ class Target():
     A target is represented by its label, an existence probability, and 
     a probability density function describing the current target state.
     """
-    def __init__(self, label, log_r=1.0, pdf=None):
+    def __init__(self, label, log_r=0.0, pdf=None):
         self.label = label
         self.log_r = log_r
         self.pdf = pdf
 
-    def predict(self):
+    def predict(self, log_p_survival):
         """
         Predict the state to the next time step
+
+        Parameters
+        ----------
+        log_p_survival: log of survival probability
         """
         # Predict PDF
         self.pdf.predict()
-        # @todo Predict existence probability r
+        # Predict existence probability r
+        self.log_r += log_p_survival
 
     def correct(self):
         """
