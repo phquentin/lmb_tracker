@@ -17,13 +17,14 @@ def main():
     tracker = lmb.LMB(params=tracker_params)
 
     gt_target_track_history = lmb.create_target_tracks(params=sim_params)
- 
-    measuerment_history = lmb.create_measurement_history(gt_target_track_history, params=sim_params)
+    
+    measuerement_history = lmb.create_measurement_history(gt_target_track_history, params=sim_params)
+
 
     tracker_estimates_history = []
-    for k in sim_params.sim_length:
-        tracks_estimates_k = tracker.update(measuerment_history[k])
-        tracker_estimates_history.append(tracks_estimates_k)
+    for ts in range(sim_params.sim_length):
+        tracks_estimates_ts = tracker.update(measuerement_history[measuerement_history['ts']==ts])
+        tracker_estimates_history.append(tracks_estimates_ts)
 
     lmb.evaluate(gt_target_track_history,tracker_estimates_history)
 

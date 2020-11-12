@@ -10,7 +10,7 @@ def create_target_tracks(params=None):
 
     Returns
     -------
-    out: track array of datatype dt_tracks: np.dtype = np.dtype([('x', 'f8',(dim_x)),
+    out: track array of datatype dt_tracks: np.dtype = np.dtype([('x', 'f8',(dim_x+dim_x_dot)),
                                                                  ('ts', 'u4'),
                                                                  ('l', 'u4')])
             
@@ -62,22 +62,33 @@ def create_target_tracks(params=None):
 
 def create_measurement_history(gt_target_track_history, params=None):
     """
-    Reduces gt_target_tracks by missed detections, adds measurement noise and clutter
-
+    Adds measurement noise to gt_target_tracks 
+    TO DO: Reduces gt_target_tracks by missed detections and clutter
     Parameters
     ----------
-    gt_target_track_history: array_like labeled groundtruth track history
+    gt_target_track_history: track array of data type dt_tracks: np.dtype = np.dtype([('x', 'f8',(dim_x+dim_x_dot)),
+                                                                                     ('ts', 'u4'),
+                                                                                     ('l', 'u4')])
 
     params: Instance of the Sim_Parameters class
 
     Returns
     -------
-    out: array_like unlabeled measuerement history
+    measuerement_history: measurement array of data type np.dtype = np.dtype([('z', 'f8',(dim_x)),
+                                                                              ('ts', 'u4')])
 
     """
 
-    _params = params if params else Sim_Parameters()
-    pass
+    params = params if params else Sim_Parameters()
+
+    measuerement_history = np.zeros(len(gt_target_track_history), dtype=params.dt_measuerement)
+    measuerement_history['z'] = gt_target_track_history['x'][:,0:params.dim_x]
+    measuerement_history['ts'] = gt_target_track_history['ts']
+    measuerement_history['z'] += np.random.multivariate_normal(mean = np.zeros(params.dim_x), \
+                                                          cov  = params.sigma ** 2 * np.identity(params.dim_x), \
+                                                         size  = len(gt_target_track_history['x']))
+
+    return measuerement_history
 
 
 def evaluate(gt_target_track_history,tracker_estimates_history):
