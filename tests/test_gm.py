@@ -10,6 +10,8 @@ class TestGM(unittest.TestCase):
         self.params = MagicMock()
 
         self.params.dim_x = 4
+        self.params.log_p_detect = np.log(0.99)
+        self.params.log_q_detect = np.log(1 - 0.99)
         # observation noise covariance
         self.params.R: np.ndarray = np.asarray([[10., 0.],
                                         [0., 10.]], dtype='f4')
@@ -62,6 +64,14 @@ class TestGM(unittest.TestCase):
         self.assertTrue((self.pdf.mc['P'] <= mc_prior['P']).all())
         # Test whether mixture component weights sum up to 1
         self.assertAlmostEqual(np.sum(np.exp(self.pdf.mc['log_w'])), 1.)
+
+        # Missed detection
+        prior = deepcopy(self.pdf)
+        self.pdf.correct(None)
+        self.assertTrue(np.allclose(self.pdf.mc['x'], prior.mc['x']))
+        self.assertTrue(np.allclose(self.pdf.mc['P'], prior.mc['P']))
+        self.assertTrue(np.allclose(self.pdf.mc['log_w'], prior.mc['log_w']))
+        self.assertAlmostEqual(self.pdf.log_lik, prior.log_w_sum + self.params.log_q_detect)
 
     def test_merge(self):
         mc_prior = deepcopy(self.pdf)

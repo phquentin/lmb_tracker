@@ -30,6 +30,8 @@ class GM():
     ----------
     log_w_sum : float
         log of sum of mixture weights
+    log_lik : float
+        log-likelihood of the last measurement association
     mc : numpy.array
         Array of mixture components, each described by its mean, covariance
         and log of normalized mixture weight (weights summing up to 1)
@@ -42,6 +44,8 @@ class GM():
         self.H = self.params.H
         self.Q = self.params.Q
         self.R = self.params.R
+        self.log_p_detect = self.params.log_p_detect
+        self.log_q_detect = self.params.log_q_detect
         # data type of mixture component entry
         self.dtype_mc = np.dtype([('log_w', 'f8'),
                                 ('x', 'f4', self.dim_x),
@@ -91,26 +95,36 @@ class GM():
                 S = HPH' + R
                 K = PH'inv(S)
 
+        If no measurement (None or empty array) is given, it is treated 
+        as a missed detection. Therefore, the mixture components are not 
+        updated and the log_likelihood of the association is updated with
+        the probability for a missed detection.
+
         Parameters
         ----------
         z: array_like
             A new measurement input (one target)
         """
-        # @todo The computation can be optimized by using numba and guvectorize.
-        # This enables the efficient use of broadcasting, such that the current loop
-        # over all mixture components can be replaced by one sequential computation.
-        for i, cmpnt in enumerate(self.mc):
-            y = z - np.dot(self.H, cmpnt['x'])
-            S = np.dot(self.H, np.dot(cmpnt['P'], self.H.T)) + self.R
-            S_inv = np.linalg.inv(S)
-            K = np.dot(cmpnt['P'], np.dot(self.H.T, S_inv))
-            self.mc[i]['x'] = cmpnt['x'] + np.dot(K, y)
-            self.mc[i]['P'] = cmpnt['P'] - np.dot(np.dot(K, S), K.T)
-            self.mc[i]['log_w'] = cmpnt['log_w'] - 0.5 * (2 * np.log(2 * np.pi) + np.log(np.linalg.det(S)) + np.dot(y, np.dot(S_inv, y)))
+        if z is None or len(z) == 0:
+            self.log_lik = self.log_w_sum + self.log_q_detect
+        else:
+            # TODO The computation can be optimized by using numba and guvectorize.
+            # This enables the efficient use of broadcasting, such that the current loop
+            # over all mixture components can be replaced by one sequential computation.
+            for i, cmpnt in enumerate(self.mc):
+                y = z - np.dot(self.H, cmpnt['x'])
+                S = np.dot(self.H, np.dot(cmpnt['P'], self.H.T)) + self.R
+                S_inv = np.linalg.inv(S)
+                K = np.dot(cmpnt['P'], np.dot(self.H.T, S_inv))
+                self.mc[i]['x'] = cmpnt['x'] + np.dot(K, y)
+                self.mc[i]['P'] = cmpnt['P'] - np.dot(np.dot(K, S), K.T)
+                self.mc[i]['log_w'] = cmpnt['log_w'] - 0.5 * (2 * np.log(2 * np.pi) + np.log(np.linalg.det(S)) + np.dot(y, np.dot(S_inv, y)))
 
-        # Normalization of mixture weights
-        self.log_w_sum = logsumexp(self.mc['log_w'])
-        self.mc['log_w'] -= self.log_w_sum
+            # Normalization of mixture weights
+            self.log_w_sum = logsumexp(self.mc['log_w'])
+            self.mc['log_w'] -= self.log_w_sum
+            # Computation of log_likelihood of this target-measurement association
+            self.log_lik = self.log_w_sum + self.log_p_detect
 
     def merge(self, pdfs, log_weights):
         """

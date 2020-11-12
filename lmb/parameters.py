@@ -1,5 +1,5 @@
 import numpy as np
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 @dataclass (frozen=True)
 class Parameters():
@@ -13,6 +13,8 @@ class Parameters():
     p_survival: float = 0.99    # survival probability
     p_birth: float = 0.02       # birth probability
     p_detect: float = 0.99      # detection probability
+    log_p_detect: float = field(init=False)
+    log_q_detect: float = field(init=False)
     kappa: float = 0.01         # clutter intensity
     r_prun_th: float = 1e-3     # existence probability pruning threshold
     # observation noise covariance
@@ -36,3 +38,11 @@ class Parameters():
                                     [0., 100., 0., 0.],
                                     [0., 0., 100., 0.],
                                     [0., 0., 0., 100.]], dtype='f4')
+
+    
+    def __post_init__(self):
+        """
+        Initialization of computed attributes
+        """
+        object.__setattr__(self, 'log_p_detect', np.log(self.p_detect))
+        object.__setattr__(self, 'log_q_detect', np.log(1 - self.p_detect))
