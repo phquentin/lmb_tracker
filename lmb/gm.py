@@ -23,6 +23,14 @@ class GM():
         Observation model
     R : numpy.array(dim_z, dim_z)
         Observation Noise matrix
+
+    Attributes
+    ----------
+    log_w_sum : float
+        log of sum of mixture weights
+    mc : numpy.array
+        Array of mixture components, each described by its mean, covariance
+        and log of normalized mixture weight (weights summing up to 1)
     """
     
     def __init__(self, params, x0=None):
@@ -38,9 +46,11 @@ class GM():
                                 ('P', 'f4', (self.dim_x, self.dim_x))])
         # init list of mixture components with one Gaussian
         self.mc = np.zeros(1, dtype=self.dtype_mc)
-        self.mc[0]['log_w'] = 1.0
+        self.mc[0]['log_w'] = 0.0
         self.mc[0]['x'] = x0 if x0 is not None else np.zeros(self.dim_x)
         self.mc[0]['P'] = self.params.P_init
+
+        self.log_w_sum = logsumexp(self.mc['log_w'])
 
     def predict(self):
         """
@@ -94,8 +104,8 @@ class GM():
             self.mc[i]['log_w'] = cmpnt['log_w'] - 0.5 * (2 * np.log(2 * np.pi) + np.log(np.linalg.det(S)) + np.dot(y, np.dot(S_inv, y)))
 
         # Normalization of mixture weights
-        log_w_sum = logsumexp(self.mc['log_w'])
-        self.mc['log_w'] -= log_w_sum
+        self.log_w_sum = logsumexp(self.mc['log_w'])
+        self.mc['log_w'] -= self.log_w_sum
 
     def merge(self):
         """
