@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.special import logsumexp
 
 class GM():
     """
@@ -77,22 +78,24 @@ class GM():
 
         Parameters
         ----------
-        z: measurement object (class to be implemented)
+        z: array_like
+            A new measurement input (one target)
         """
-        ## for each mixture component or via broadcasting:
-        #   y = z - np.dot(self.H, self.mc['x'])
-        #   S = np.dot(np.dot(self.H, self.mc['P']), self.H.T) + self.R
-        #   S_inv = np.linalg.inv(S)
-        #   K = np.dot(np.dot(self.mc['P'], self.H.T), S_inv)
-        #   self.mc['x'] = self.mc['x'] + np.dot(K, y)
-        #   self.mc['P'] = self.mc['P'] - np.dot(np.dot(K, S), K.T)
-        #   self.mc['log_w'] = self.mc['log_w'] + 2 * np.log(2 * np.pi) + np.log(np.linalg.det(S)) + np.dot(y, np.dot(S_inv, y))
-        #   self.mc['log_w'] *= -0.5
-        #
-        ## Normalization of mixture weights
-        # log_w_sum = logsumexp(self.mc['log_w'])
-        # self.mc['log_w'] -= log_w_sum
-        pass # @todo Implementation
+        # @todo The computation can be optimized by using numba and guvectorize.
+        # This enables the efficient use of broadcasting, such that the current loop
+        # over all mixture components can be replaced by one sequential computation.
+        for i, cmpnt in enumerate(self.mc):
+            y = z - np.dot(self.H, cmpnt['x'])
+            S = np.dot(self.H, np.dot(cmpnt['P'], self.H.T)) + self.R
+            S_inv = np.linalg.inv(S)
+            K = np.dot(cmpnt['P'], np.dot(self.H.T, S_inv))
+            self.mc[i]['x'] = cmpnt['x'] + np.dot(K, y)
+            self.mc[i]['P'] = cmpnt['P'] - np.dot(np.dot(K, S), K.T)
+            self.mc[i]['log_w'] = cmpnt['log_w'] - 0.5 * (2 * np.log(2 * np.pi) + np.log(np.linalg.det(S)) + np.dot(y, np.dot(S_inv, y)))
+
+        # Normalization of mixture weights
+        log_w_sum = logsumexp(self.mc['log_w'])
+        self.mc['log_w'] -= log_w_sum
 
     def merge(self):
         """

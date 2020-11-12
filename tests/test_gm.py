@@ -35,6 +35,8 @@ class TestGM(unittest.TestCase):
         self.pdf.mc = np.append(self.pdf.mc[0], self.pdf.mc[0])
         self.pdf.mc[0]['x'] = np.asarray([1., 0., 0.5, 0.5])
         self.pdf.mc[1]['x'] = np.asarray([-5., 0., -1., 2])
+        self.pdf.mc[0]['log_w'] = np.log(1 / len(self.pdf.mc))
+        self.pdf.mc[1]['log_w'] = np.log(1 / len(self.pdf.mc))
 
     def test_predict(self):
         mc_prior = deepcopy(self.pdf.mc)
@@ -46,3 +48,17 @@ class TestGM(unittest.TestCase):
         self.assertTrue(np.allclose(self.pdf.mc['log_w'], mc_prior['log_w']))
         # Test shape of P
         self.assertEqual(self.pdf.mc['P'].shape, mc_prior['P'].shape)
+
+    def test_correct(self):
+        mc_prior = deepcopy(self.pdf.mc)
+        z = np.asarray([0, -1])
+        self.pdf.correct(z)
+        
+        # Test resulting shapes of arrays
+        self.assertEqual(self.pdf.mc['x'].shape, mc_prior['x'].shape)
+        self.assertEqual(self.pdf.mc['P'].shape, mc_prior['P'].shape)
+        # Test values of P: Every value of the covariance matrices have to be 
+        # smaller or equal the prior value before correction
+        self.assertTrue((self.pdf.mc['P'] <= mc_prior['P']).all())
+        # Test whether mixture component weights sum up to 1
+        self.assertAlmostEqual(np.sum(np.exp(self.pdf.mc['log_w'])), 1.)
