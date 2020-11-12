@@ -52,9 +52,23 @@ class LMB():
         z: measurement object (class to be implemented)
         """
         ## 1. Create target-measurement associations and calculate each log_likelihood
-        ## 2. Compute hypothesis weights and resulting existence probability of each target
+        ## create association cost matrix with first column for death and second for missed detection
+        ## (initialize with min prob --> high negative value due to log): 
+        N = len(self.targets)
+        M = len(z)
+        C = np.zeros(N, 2 + M)
+        ## compute entries of cost matrix for each target-measurement association (including misdetection)
+        for i, target in enumerate(self.targets):
+            # missed detection (column 1) and associations
+            C[i, 1:] = target.compute_associations(z)
+            # died or not born
+            C[i, 0] = target.nll_false()
+
+        ## Ranked assignment using Gibbs sampler
+        ## 2. Compute hypothesis weights using Gibbs sampler
+        ## 3. Calculate resulting existence probability of each target
         # for target in self.targets:
-        #    target.correct()
+        #    target.correct(assignment_weights)
         ## 3. Prune targets
         self._prune()
 
