@@ -9,6 +9,8 @@ class GM():
     ----------
     x0 : numpy.array(dim_x) optional
         Initial state estimate
+    prior_mc : numpy.array (dtype=self.dtype_mc), optional
+        Prior gaussian mixture components for initialization
     dim_x : int
         Dimension (number) of state variables
     dim_z : int
@@ -33,7 +35,7 @@ class GM():
         and log of normalized mixture weight (weights summing up to 1)
     """
     
-    def __init__(self, params, x0=None):
+    def __init__(self, params, x0=None, prior_mc=None):
         self.params = params
         self.dim_x = self.params.dim_x
         self.F = self.params.F
@@ -44,11 +46,14 @@ class GM():
         self.dtype_mc = np.dtype([('log_w', 'f8'),
                                 ('x', 'f4', self.dim_x),
                                 ('P', 'f4', (self.dim_x, self.dim_x))])
-        # init list of mixture components with one Gaussian
-        self.mc = np.zeros(1, dtype=self.dtype_mc)
-        self.mc[0]['log_w'] = 0.0
-        self.mc[0]['x'] = x0 if x0 is not None else np.zeros(self.dim_x)
-        self.mc[0]['P'] = self.params.P_init
+        if prior_mc is not None and prior_mc.dtype == self.dtype_mc:
+            self.mc = prior_mc
+        else:
+            # init list of mixture components with one Gaussian
+            self.mc = np.zeros(1, dtype=self.dtype_mc)
+            self.mc[0]['log_w'] = 0.0
+            self.mc[0]['x'] = x0 if x0 is not None else np.zeros(self.dim_x)
+            self.mc[0]['P'] = self.params.P_init
 
         self.log_w_sum = logsumexp(self.mc['log_w'])
 
@@ -107,7 +112,31 @@ class GM():
         self.log_w_sum = logsumexp(self.mc['log_w'])
         self.mc['log_w'] -= self.log_w_sum
 
-    def merge(self):
+    def merge(self, pdfs, log_weights):
+        """
+        Merge multiple Gaussian mixtures into one mixture
+
+        Parameters
+        ----------
+        pdfs : array_like
+            Array/list of Gaussian mixture PDFs objects
+        log_weights : array_like
+            Normalized hypothesis weights of the PDFs in log representation
+
+        Returns
+        -------
+        out : GM
+            New GM object containing the merged mixture components
+        """
+        # Normalize mixture component weights
+        mcs = [pdf.mc for pdf in pdfs]
+        for log_weight, mc in zip(log_weights, mcs):
+            mc['log_w'] += log_weight
+
+        return GM(self.params, prior_mc=np.concatenate(mcs))
+            
+
+    def merge_gaussians(self):
         """
         Merge Gaussian Mixture components which are closer than a defined threshold
         """

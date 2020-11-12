@@ -62,3 +62,15 @@ class TestGM(unittest.TestCase):
         self.assertTrue((self.pdf.mc['P'] <= mc_prior['P']).all())
         # Test whether mixture component weights sum up to 1
         self.assertAlmostEqual(np.sum(np.exp(self.pdf.mc['log_w'])), 1.)
+
+    def test_merge(self):
+        mc_prior = deepcopy(self.pdf)
+        pdfs = [self.pdf, mc_prior]
+        log_weights = [np.log(0.75), np.log(0.25)]
+        len_mc_pdfs = np.sum([len(pdf.mc) for pdf in pdfs])
+        self.pdf = self.pdf.merge(pdfs, log_weights)
+
+        # Test number of resulting mixture components
+        self.assertEqual(len(self.pdf.mc), len_mc_pdfs)
+        # Test whether mixture component weights sum up to 1
+        self.assertAlmostEqual(np.sum(np.exp(self.pdf.mc['log_w'])), 1.)
