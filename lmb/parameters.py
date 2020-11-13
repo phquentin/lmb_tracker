@@ -16,6 +16,7 @@ class Parameters():
     log_p_detect: float = field(init=False)
     log_q_detect: float = field(init=False)
     kappa: float = 0.01         # clutter intensity
+    log_kappa: float = field(init=False)
     r_prun_th: float = 1e-3     # existence probability pruning threshold
     # observation noise covariance
     R: np.ndarray = np.asarray([[10., 0.],
@@ -46,3 +47,4 @@ class Parameters():
         """
         object.__setattr__(self, 'log_p_detect', np.log(self.p_detect))
         object.__setattr__(self, 'log_q_detect', np.log(1 - self.p_detect))
+        object.__setattr__(self, 'log_kappa', np.log(self.kappa))

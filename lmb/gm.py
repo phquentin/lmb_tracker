@@ -46,6 +46,7 @@ class GM():
         self.R = self.params.R
         self.log_p_detect = self.params.log_p_detect
         self.log_q_detect = self.params.log_q_detect
+        self.log_kappa = self.params.log_kappa
         # data type of mixture component entry
         self.dtype_mc = np.dtype([('log_w', 'f8'),
                                 ('x', 'f4', self.dim_x),
@@ -95,6 +96,10 @@ class GM():
                 S = HPH' + R
                 K = PH'inv(S)
 
+        Additionally, the log-likelihood of this measurement association
+        is computed according to equation for calculating eta:
+        log_lik = ln(eta) = ln((p_detect / kappa) * sum(w_cmpnts))
+
         If no measurement (None or empty array) is given, it is treated 
         as a missed detection. Therefore, the mixture components are not 
         updated and the log_likelihood of the association is updated with
@@ -124,7 +129,7 @@ class GM():
             self.log_w_sum = logsumexp(self.mc['log_w'])
             self.mc['log_w'] -= self.log_w_sum
             # Computation of log_likelihood of this target-measurement association
-            self.log_lik = self.log_w_sum + self.log_p_detect
+            self.log_lik = self.log_w_sum + self.log_p_detect - self.log_kappa
 
     def merge(self, pdfs, log_weights):
         """
