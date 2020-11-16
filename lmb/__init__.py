@@ -1,5 +1,6 @@
 from .lmb import *
 from .gm import *
 from .evaluation import *
-from .parameters import Tracker_Parameters, Sim_Parameters
+from .simulation import *
+from .parameters import TrackerParameters, SimParameters
 from .target import Target

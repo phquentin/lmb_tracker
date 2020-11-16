@@ -2,7 +2,7 @@ import numpy as np
 from dataclasses import dataclass
 
 @dataclass (frozen=True)
-class Tracker_Parameters():
+class TrackerParameters():
     """
     Class containing the overal tracker parameters
     """
@@ -23,13 +23,13 @@ class Tracker_Parameters():
                                 [0, 10, 0, 20]], dtype='f4')
 
 @dataclass (frozen=True) 
-class Sim_Parameters():
+class SimParameters():
     """
     Class containing the overal simulation parameters
     """                      
     sim_length: int = 4   # number of simulation timesteps
-    dim_x: int = 2 # Dimension (number) of position state variables
-    dim_x_dot: int = 2 # Dimension (number) of the velocity state variables
+    dim_x: int = 4 # Dimension (number) of state variables
+    dim_z: int = 2 # Dimension of measured state variables
     sigma: float = 2 # Standard deviation of measurement noise
 
     # State Transition matrix
@@ -39,20 +39,20 @@ class Sim_Parameters():
                                 [0,0,0,1]],dtype='f4')
 
     # Data type of array to generate tracks
-    dt_init_track_info: np.dtype = np.dtype([('x', 'f8',(dim_x+dim_x_dot)),
+    dt_init_track_info: np.dtype = np.dtype([('x', 'f8',(dim_x)),
                                      ('birth_ts', 'u4'),
                                      ('death_ts', 'u4'),
-                                     ('l', 'u4')])
+                                     ('label', 'u4')])
     # Data type of tracks
-    dt_tracks: np.dtype = np.dtype([('x', 'f8',(dim_x+dim_x_dot)),
+    dt_tracks: np.dtype = np.dtype([('x', 'f8',(dim_x)),
                           ('ts', 'u4'),
-                          ('l', 'u4')])
+                          ('label', 'u4')])
 
     # Data type of measuerements
-    dt_measuerement: np.dtype = np.dtype([('z', 'f8',(dim_x)),
+    dt_measurement: np.dtype = np.dtype([('z', 'f8',(dim_z)),
                                           ('ts', 'u4')])
 
     # Array with state, birth and death information to generate tracks
-    init_track__info: np.ndarray = np.asarray ([([10, 10, 2, 2],0, 2, 1),
+    init_track_info: np.ndarray = np.asarray ([([10, 10, 2, 2],0, 2, 1),
                                                 ([20, 50, 4, 5],0, 3, 2), 
                                                 ([20, 50, 4, 5],2, 5, 3)],dtype=dt_init_track_info)

@@ -1,4 +1,4 @@
-from .parameters import Tracker_Parameters
+from .parameters import TrackerParameters
 from .target import Target
 
 class LMB():
@@ -6,7 +6,7 @@ class LMB():
     Main class of the labeled multi bernoulli filter implementation.
     """
     def __init__(self, params=None):
-        self.params = params if params else Parameters()
+        self.params = params if params else TrackerParameters()
         self.targets = [] # list of currently tracked targets
 
     def update(self,z):
