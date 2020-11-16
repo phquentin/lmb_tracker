@@ -1,5 +1,5 @@
 import numpy as np
-from .parameters import Sim_Parameters
+from .parameters import SimParameters
 
 def create_target_tracks(params=None):
     """
