@@ -12,9 +12,7 @@ def create_target_tracks(params=None):
     Returns
     -------
     out: ndarray
-        Array of Tracks (dtype = np.dtype([('x', 'f8',(dim_x+dim_x_dot)),
-                                           ('ts', 'u4'),
-                                           ('l', 'u4')]))
+        Array of Tracks (dtype = SimParameters.dt_tracks)
             
     """
     params = params if params else SimParameters()
@@ -78,8 +76,7 @@ def create_measurement_history(gt_target_track_history, params=None):
     Returns
     -------
     out: ndarray
-        Array of the measurment history (dtype = np.dtype([('z', 'f8',(dim_x)),
-                                                           ('ts', 'u4')]))
+        Array of the measurment history (dtype = SimParameters.dt_measurement)
     """
 
     params = params if params else SimParameters()
