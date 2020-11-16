@@ -8,7 +8,7 @@ import lmb
 
 def main():
     # creating new parameter set
-    params = lmb.Parameters() # default parameter set
+    params = lmb.TrackerParameters() # default parameter set
     tracker = lmb.LMB(params=params)
     print(tracker.params)
     print(tracker.targets[0])

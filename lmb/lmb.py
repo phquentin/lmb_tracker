@@ -1,6 +1,6 @@
 import numpy as np
 
-from .parameters import Parameters
+from .parameters import TrackerParameters
 from .target import Target
 from .gm import GM
 
@@ -9,7 +9,7 @@ class LMB():
     Main class of the labeled multi bernoulli filter implementation.
     """
     def __init__(self, params=None):
-        self.params = params if params else Parameters()
+        self.params = params if params else TrackerParameters()
         self.log_p_survival = np.log(self.params.p_survival)
         self.targets = [] # list of currently tracked targets
         self.targets.append(Target("0", pdf=GM(params=params)))
@@ -56,11 +56,11 @@ class LMB():
         ## (initialize with min prob --> high negative value due to log): 
         N = len(self.targets)
         M = len(z)
-        C = np.zeros(N, 2 + M)
+        C = np.zeros((N, 2 + M))
         ## compute entries of cost matrix for each target-measurement association (including misdetection)
         for i, target in enumerate(self.targets):
             # missed detection (column 1) and associations
-            C[i, 1:] = target.compute_associations(z)
+            C[i, 1:] = target.create_associations(z)
             # died or not born
             C[i, 0] = target.nll_false()
 
