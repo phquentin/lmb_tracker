@@ -71,14 +71,14 @@ class TestGM(unittest.TestCase):
         self.assertTrue(np.allclose(self.pdf.mc['x'], prior.mc['x']))
         self.assertTrue(np.allclose(self.pdf.mc['P'], prior.mc['P']))
         self.assertTrue(np.allclose(self.pdf.mc['log_w'], prior.mc['log_w']))
-        self.assertAlmostEqual(self.pdf.log_lik, prior.log_w_sum + self.params.log_q_detect)
+        self.assertAlmostEqual(self.pdf.log_eta_z, prior.log_w_sum + self.params.log_q_detect)
 
-    def test_merge(self):
+    def test_overwrite_with_merged_pdf(self):
         mc_prior = deepcopy(self.pdf)
         pdfs = [self.pdf, mc_prior]
         log_weights = [np.log(0.75), np.log(0.25)]
         len_mc_pdfs = np.sum([len(pdf.mc) for pdf in pdfs])
-        self.pdf = self.pdf.merge(pdfs, log_weights)
+        self.pdf.overwrite_with_merged_pdf(pdfs, log_weights)
 
         # Test number of resulting mixture components
         self.assertEqual(len(self.pdf.mc), len_mc_pdfs)

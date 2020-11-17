@@ -111,7 +111,7 @@ class GM():
             A new measurement input (one target)
         """
         if z is None or len(z) == 0:
-            self.log_lik = self.log_w_sum + self.log_q_detect
+            self.log_eta_z = self.log_w_sum + self.log_q_detect
         else:
             # TODO The computation can be optimized by using numba and guvectorize.
             # This enables the efficient use of broadcasting, such that the current loop
@@ -125,34 +125,29 @@ class GM():
                 self.mc[i]['P'] = cmpnt['P'] - np.dot(np.dot(K, S), K.T)
                 self.mc[i]['log_w'] = cmpnt['log_w'] - 0.5 * (2 * np.log(2 * np.pi) + np.log(np.linalg.det(S)) + np.dot(y, np.dot(S_inv, y)))
 
-            # Normalization of mixture weights
+            # Normalization of mixture weights to receive updated weights
             self.log_w_sum = logsumexp(self.mc['log_w'])
             self.mc['log_w'] -= self.log_w_sum
             # Computation of log_likelihood of this target-measurement association
-            self.log_lik = self.log_w_sum + self.log_p_detect - self.log_kappa
+            self.log_eta_z = self.log_w_sum + self.log_p_detect - self.log_kappa
 
-    def merge(self, pdfs, log_weights):
+    def overwrite_with_merged_pdf(self, pdfs, log_hyp_weights):
         """
-        Merge multiple Gaussian mixtures into one mixture
+        Merge multiple Gaussian mixtures into one mixture and overwrite current mixture
 
         Parameters
         ----------
         pdfs : array_like
             Array/list of Gaussian mixture PDFs objects
-        log_weights : array_like
+        log_hyp_weights : array_like
             Normalized hypothesis weights of the PDFs in log representation
-
-        Returns
-        -------
-        out : GM
-            New GM object containing the merged mixture components
         """
         # Normalize mixture component weights
         mcs = [pdf.mc for pdf in pdfs]
-        for log_weight, mc in zip(log_weights, mcs):
-            mc['log_w'] += log_weight
+        for log_hyp_weight, mc in zip(log_hyp_weights, mcs):
+            mc['log_w'] += log_hyp_weight
 
-        return GM(self.params, prior_mc=np.concatenate(mcs))
+        self.mc = np.concatenate(mcs)
             
 
     def merge_gaussians(self):
