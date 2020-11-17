@@ -7,30 +7,36 @@ class GM():
 
     Parameters
     ----------
+    params.dim_x : int
+        Dimension (number) of state variables
+    params.dim_z : int
+        Dimension (number) of measurement inputs
+    params.P_init : numpy.array(dim_x, dim_x)
+        Initial state covariance matrix
+    params.F : numpy.array(dim_x, dim_x)
+        State Transition matrix
+    params.Q : numpy.array(dim_x, dim_x)
+        Process Noise matrix
+    params.H : numpy.array(dim_z, dim_x)
+        Observation model
+    params.R : numpy.array(dim_z, dim_z)
+        Observation Noise matrix
+    params.log_p_detect : float
+        Detection probability as log-likelihood
+    params.log_q_detect : float
+        Inverse of detection probability as log-likelihood
+    params.log_kappa : float
+        Clutter intensity as log-likelihood
     x0 : numpy.array(dim_x) optional
         Initial state estimate
     prior_mc : numpy.array (dtype=self.dtype_mc), optional
         Prior gaussian mixture components for initialization
-    dim_x : int
-        Dimension (number) of state variables
-    dim_z : int
-        Dimension (number) of measurement inputs
-    P_init : numpy.array(dim_x, dim_x)
-        Initial state covariance matrix
-    F : numpy.array(dim_x, dim_x)
-        State Transition matrix
-    Q : numpy.array(dim_x, dim_x)
-        Process Noise matrix
-    H : numpy.array(dim_z, dim_x)
-        Observation model
-    R : numpy.array(dim_z, dim_z)
-        Observation Noise matrix
 
     Attributes
     ----------
     log_w_sum : float
         log of sum of mixture weights
-    log_lik : float
+    log_eta_z : float
         log-likelihood of the last measurement association
     mc : numpy.array
         Array of mixture components, each described by its mean, covariance
@@ -96,9 +102,10 @@ class GM():
                 S = HPH' + R
                 K = PH'inv(S)
 
-        Additionally, the log-likelihood of this measurement association
-        is computed according to equation for calculating eta:
-        log_lik = ln(eta) = ln((p_detect / kappa) * sum(w_cmpnts))
+        Additionally, the log-likelihood log_eta_z of this measurement association
+        is computed according to equation for calculating eta_z:
+        log_eta_z = ln(eta_z) = ln( (p_detect / kappa) * sum( w_cmpnts * N(z; z_+, S) ) )
+        with N(z; z_+, S) being the Gaussian measurement likelihood.
 
         If no measurement (None or empty array) is given, it is treated 
         as a missed detection. Therefore, the mixture components are not 

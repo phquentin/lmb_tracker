@@ -4,9 +4,9 @@ from dataclasses import dataclass, field
 @dataclass (frozen=True)
 class TrackerParameters():
     """
-    Class containing the overal tracker parameters
+    Class containing the overall tracker parameters
     """
-    dim_x: int = 4              # Dimension (number) of states (first + second order)
+    dim_x: int = 4              # Dimension (number) of states
     dim_z: int = 2              # Dimension (number) of measurement inputs
     n_targets_max: int = 1000   # maximum number of targets
     n_gm_cmpnts_max: int = 100  # maximum number of Gaussian mixture components
@@ -51,7 +51,7 @@ class TrackerParameters():
 @dataclass (frozen=True) 
 class SimParameters():
     """
-    Class containing the overal simulation parameters
+    Class containing the overall simulation parameters
     """                      
     sim_length: int = 4   # number of simulation timesteps
     dim_x: int = 4 # Dimension (number) of state variables

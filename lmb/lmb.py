@@ -7,6 +7,22 @@ from .gm import GM
 class LMB():
     """
     Main class of the labeled multi bernoulli filter implementation.
+
+    Parameters
+    ----------
+    params : TrackerParameter, optional
+        Parameter object containing all tracker parameters required by all subclasses.
+        Gets initialized with default parameters, in case no object is passed.
+    
+    LMB-Class specific Paramters
+    ------
+    params.log_p_survival : float
+        Target survival probability as log-likelihood
+
+    Attributes
+    ----------
+    targets : array_like
+        List of currently active targets
     """
     def __init__(self, params=None):
         self.params = params if params else TrackerParameters()
