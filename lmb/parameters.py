@@ -1,6 +1,8 @@
 import numpy as np
 from dataclasses import dataclass, field
 
+float_precision = 'f4'
+
 @dataclass (frozen=True)
 class TrackerParameters():
     """
@@ -20,25 +22,25 @@ class TrackerParameters():
     r_prun_th: float = 1e-3     # existence probability pruning threshold
     # observation noise covariance
     R: np.ndarray = np.asarray([[10., 0.],
-                                [0., 10.]], dtype='f4')
+                                [0., 10.]], dtype=float_precision)
     # process noise covariance
     Q: np.ndarray = np.asarray([[5., 0., 10., 0.],
                                 [0., 5., 0., 10.],
                                 [10., 0., 20., 0.],
-                                [0., 10., 0., 20.]], dtype='f4')
+                                [0., 10., 0., 20.]], dtype=float_precision)
     # Motion model: state transition matrix
     F: np.ndarray = np.asarray([[1., 0., 1., 0.],
                                 [0., 1., 0., 1.],
                                 [0., 0., 1., 0.],
-                                [0., 0., 0., 1.]], dtype='f4')
+                                [0., 0., 0., 1.]], dtype=float_precision)
     # Observation model
     H: np.ndarray = np.asarray([[1., 0., 0., 0.],
-                                [0., 1., 0., 0.]], dtype='f4')
+                                [0., 1., 0., 0.]], dtype=float_precision)
     # Initial state covariance matrix
     P_init: np.ndarray = np.asarray([[100., 0., 0., 0.],
                                     [0., 100., 0., 0.],
                                     [0., 0., 100., 0.],
-                                    [0., 0., 0., 100.]], dtype='f4')
+                                    [0., 0., 0., 100.]], dtype=float_precision)
 
     def __post_init__(self):
         """
@@ -62,7 +64,7 @@ class SimParameters():
     F: np.ndarray = np.asarray([[1,0,1,0],
                                 [0,1,0,1],
                                 [0,0,1,0],
-                                [0,0,0,1]],dtype='f4')
+                                [0,0,0,1]],dtype=float_precision)
 
     # Data type of array to generate tracks
     dt_init_track_info: np.dtype = np.dtype([('x', 'f8',(dim_x)),
