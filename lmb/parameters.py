@@ -59,6 +59,7 @@ class SimParameters():
     dim_x: int = 4 # Dimension (number) of state variables
     dim_z: int = 2 # Dimension of measured state variables
     sigma: float = 2 # Standard deviation of measurement noise
+    max_d2: int = 10000 # Maximum squared euclidian distance for which py-motmetrics creates a hypothesis between a ground truth track and estimated track
 
     # State Transition matrix
     F: np.ndarray = np.asarray([[1,0,1,0],

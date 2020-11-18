@@ -12,7 +12,7 @@ def create_target_tracks(params=None):
     Returns
     -------
     out: ndarray
-        Array of Tracks (dtype = SimParameters.dt_tracks)
+        Array of ground truths tracks (dtype = SimParameters.dt_tracks)
             
     """
     params = params if params else SimParameters()
@@ -67,9 +67,7 @@ def create_measurement_history(gt_target_track_history, params=None):
     Parameters
     ----------
     gt_target_track_history: ndarray
-        Array of ground truth tracks (dtype = np.dtype([('x', 'f8',(dim_x+dim_x_dot)),
-                                                       ('ts', 'u4'),
-                                                       ('l', 'u4')])))
+        Array of ground truth tracks (dtype = SimParameters.dt_tracks)
                                                     
     params: Instance of the SimParameters class
 
