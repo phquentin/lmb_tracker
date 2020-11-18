@@ -6,7 +6,7 @@
 
 Install the required dependencies of the `requirements.yml`. This file can be used to directly create an environment with all required dependencies installed (e.g. using conda).
 
-Install the `py-motmetrics` package within the environment of the `requirements.yml`. Download the package and see installation instructions at https://github.com/cheind/py-motmetrics
+Install the `py-motmetrics` package within the environment of the required dependencies of the `requirements.yml`. Download the package and see installation instructions at https://github.com/cheind/py-motmetrics .
 
 ### Package installation
 
