@@ -1,5 +1,7 @@
 import numpy as np
 from dataclasses import dataclass, field
+from typing import Callable
+from .murty import murty
 
 float_precision = 'f4'
 
@@ -41,6 +43,8 @@ class TrackerParameters():
                                     [0., 100., 0., 0.],
                                     [0., 0., 100., 0.],
                                     [0., 0., 0., 100.]], dtype=float_precision)
+    # Algorithm used for solving the ranked assignment problem
+    ranked_assign: Callable[[np.ndarray, np.ndarray, int], None] = murty
 
     def __post_init__(self):
         """

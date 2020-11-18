@@ -137,6 +137,9 @@ class GM():
             self.mc['log_w'] -= self.log_w_sum
             # Computation of log_likelihood of this target-measurement association
             self.log_eta_z = self.log_w_sum + self.log_p_detect - self.log_kappa
+        
+        return self
+
 
     def overwrite_with_merged_pdf(self, pdfs, log_hyp_weights):
         """

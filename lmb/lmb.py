@@ -27,8 +27,11 @@ class LMB():
     def __init__(self, params=None):
         self.params = params if params else TrackerParameters()
         self.log_p_survival = np.log(self.params.p_survival)
+        self.ranked_assign = self.params.ranked_assign
+
         self.targets = [] # list of currently tracked targets
         self.targets.append(Target("0", pdf=GM(params=params)))
+        self.targets.append(Target("1", pdf=GM(params=params)))
 
     def update(self,z):
         """
@@ -71,21 +74,24 @@ class LMB():
         ## create association cost matrix with first column for death and second for missed detection
         ## (initialize with min prob --> high negative value due to log): 
         N = len(self.targets)
-        M = len(z)
+        M = len(z['z'])
         C = np.zeros((N, 2 + M))
         ## compute entries of cost matrix for each target-measurement association (including misdetection)
         for i, target in enumerate(self.targets):
             # missed detection (column 1) and associations
-            C[i, 1:] = target.create_associations(z)
+            C[i, range(M + 1)] = target.create_assignments(z)
             # died or not born
-            C[i, 0] = target.nll_false()
-
-        ## Ranked assignment using Gibbs sampler
-        ## 2. Compute hypothesis weights using Gibbs sampler
+            C[i, (M + 1)] = target.nll_false()
+        print('C \n',C)
+        ## Ranked assignment 
+        ## 2. Compute hypothesis weights using specified ranked assignment algorithm
+        hyp_weights = -500 * np.ones((N, M + 1))
+        self.ranked_assign(C, hyp_weights)
+        print('hyp_weights \n', hyp_weights)
         ## 3. Calculate resulting existence probability of each target
-        # for target in self.targets:
-        #    target.correct(assignment_weights)
-        ## 3. Prune targets
+        for i, target in enumerate(self.targets):
+            target.correct(hyp_weights[i, ])
+        ## 4. Prune targets
         self._prune()
 
     def _prune(self):
