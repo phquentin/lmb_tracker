@@ -1,9 +1,8 @@
 import motmetrics as mm
-from .parameters import SimParameters
 import numpy as np
 
 
-def evaluate2Dpoint(tracks_gt, tracks_est, max_d2):
+def evaluate_point_2D(tracks_gt, tracks_est, max_d2):
     """
     Evaluates tracker results by MOT Challenge metrics for 2D point tracking problems
     
@@ -39,7 +38,3 @@ def evaluate2Dpoint(tracks_gt, tracks_est, max_d2):
     summary = mh.compute(acc, metrics=mm.metrics.motchallenge_metrics, name='acc')
     strsummary = mm.io.render_summary(summary, formatters=mh.formatters, namemap=mm.io.motchallenge_metric_names)
     print(strsummary)
-
-
-
-

@@ -1,6 +1,6 @@
 """ 
 Simple 2D point evaluation example to test and evaluate tracker for basic functionality
-No full functionality since the tracker is not fully implemented. Uncomment lmb.evaluate2Dpoint, when tracker is 
+No full functionality since the tracker is not fully implemented. Uncomment lmb.evaluate_point_2D, when tracker is 
 implemented.
 """
 
@@ -21,7 +21,7 @@ def main():
         tracks_estimates_ts = tracker.update(measurement_history[measurement_history['ts']==ts])
         tracker_estimates_history.append(tracks_estimates_ts)
 
-    #lmb.evaluate2Dpoint(gt_target_track_history,tracker_estimates_history, sim_params.max_d2)
+    #lmb.evaluate_point_2D(gt_target_track_history, tracker_estimates_history, sim_params.max_d2)
 
 if __name__ == '__main__':
     main()
