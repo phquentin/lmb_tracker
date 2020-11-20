@@ -1,36 +1,39 @@
 import motmetrics as mm
-import numpy as np
 from .parameters import SimParameters
+import numpy as np
 
-def evaluate(gt_target_track_history, tracker_estimates_history, params=None):
+
+def evaluate2Dpoint(tracks_gt, tracks_est, max_d2):
     """
-    Evaluates tracker results by MOT Challenge metrics
+    Evaluates tracker results by MOT Challenge metrics for 2D point tracking problems
     
     Parameters
     ----------
-    gt_target_track_history: ndarray
+    tracks_gt: ndarray
         Array of ground truth tracks (dtype = SimParameters.dt_tracks)
 
-    tracker_estimates_history: ndarray
+    tracks_est: ndarray
         Array of estimated tracks (dtype = SimParameters.dt_tracks)
 
-    params: Instance of the SimParameters class    
+    max_d2: int 
+        Maximum squared euclidian distance for which py-motmetrics creates a hypothesis between a ground truth track and estimated track   
     """
 
-    params = params if params else SimParameters()
     acc = mm.MOTAccumulator(auto_id=True)
 
-    for ts in range(params.sim_length):
+    number_ts = np.amax(tracks_gt['ts']) 
+   
+    for ts in range(number_ts):
 
-        gt_labels_ts = gt_target_track_history[gt_target_track_history['ts']==ts]['label']
-        track_labels_ts = tracker_estimates_history[tracker_estimates_history['ts']==ts]['label']
+        gt_labels_ts = tracks_gt[tracks_gt['ts']==ts]['label']
+        est_labels_ts = tracks_est[tracks_est['ts']==ts]['label']
         
-        gt_states_ts = gt_target_track_history[gt_target_track_history['ts']==ts]['x']
-        track_states_ts = tracker_estimates_history[tracker_estimates_history['ts']==ts]['x']
+        gt_states_ts = tracks_gt[tracks_gt['ts']==ts]['x']
+        est_states_ts = tracks_est[tracks_est['ts']==ts]['x']
        
-        hypothesis_distance_ts = mm.distances.norm2squared_matrix(gt_states_ts, track_states_ts, max_d2=params.max_d2)
+        hypothesis_distance_ts = mm.distances.norm2squared_matrix(gt_states_ts, est_states_ts, max_d2=max_d2)
         
-        acc.update(gt_labels_ts,track_labels_ts,hypothesis_distance_ts)
+        acc.update(gt_labels_ts, est_labels_ts, hypothesis_distance_ts)
 
     mh = mm.metrics.create()
     summary = mh.compute(acc, metrics=mm.metrics.motchallenge_metrics, name='acc')

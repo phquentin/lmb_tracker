@@ -8,4 +8,5 @@ dependencies:
 - pandas
 - pip
 - pip:
+    - motmetrics
     - pytest
