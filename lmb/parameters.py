@@ -46,6 +46,10 @@ class TrackerParameters():
     # Algorithm used for solving the ranked assignment problem
     ranked_assign: Callable[[np.ndarray, np.ndarray, int], None] = murty
 
+    # Gibbs sampler parameters
+    num_samples: int = 1000  # Number of samples the Gibbs sampler takes from the eta_nll matrix
+    max_invalid_samples: int = 100 # Maximum number of consecutive invalid samples that do not contain a valid assignment after that the gibbs sampler terminates
+
     def __post_init__(self):
         """
         Initialization of computed attributes
