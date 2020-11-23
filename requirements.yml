@@ -1,6 +1,12 @@
 name: lmb
 channels:
-  - conda-forge
+- conda-forge
 dependencies:
-  - python=3.8.6
-  - numpy
+- python=3.8.6
+- numpy
+- scipy
+- pandas
+- pip
+- pip:
+    - motmetrics
+    - pytest
