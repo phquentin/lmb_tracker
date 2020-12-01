@@ -1,4 +1,7 @@
+from copy import deepcopy
 import numpy as np
+
+from scipy.special import logsumexp
 
 class Target():
     """
@@ -24,6 +27,7 @@ class Target():
         self.pdf.predict()
         # Predict existence probability r
         self.log_r += log_p_survival
+        print('prediction: label ', self.label, 'log_r=',self.log_r, ' r=', np.exp(self.log_r))
 
     def correct(self, assignment_weights):
         """
@@ -34,33 +38,39 @@ class Target():
 
         Parameters
         ----------
-        assignment_weights : array_like (len(assignments + 1))
-            Computed hypothesis weights from ranked assignment (e.g. Gibbs sampler)
+        assignment_weights : array_like (len(self.assignments))
+            Computed hypothesis weights (in log-likelihood) from ranked assignment
         """
         # 1.: self.log_r = sum of assignment weights
+        self.log_r = logsumexp(assignment_weights)
+        print('corrected label ', self.label, 'log_r=',self.log_r, ' r=', np.exp(self.log_r))
         # 2.: Combine PDFs
+        self.pdf.overwrite_with_merged_pdf(self.assignments, assignment_weights - self.log_r)
 
-    def create_associations(self, z):
+    def create_assignments(self, Z):
         """
         Compute new hypothetical target-measurement associations
 
-        TODO: define structure and storage of associations
-
         Parameters
         ----------
-        z : array_like
+        Z : array_like
             measurements
         
         Returns
         -------
         out : array_like (len(z))
-            computed etas (weights) of all target-measurement associations
+            Negative log-likelihood of computed etas (weights) of all target-measurement associations
         """
-        # TODO: Either create copies of PDFs and subsequentially call correct(z)
-        # or handle all associations in one matrix using broadcasting
-        # 1. Compute PDFs and weights for each association and a missed detection
-        # 2. Calculate etas by adding self.log_r
-        pass
+        # Compute PDFs and weights for each association and a missed detection
+        # TODO implementation using array with known size as optimization
+        self.assignments = []
+        for z in Z:
+            self.assignments.append(deepcopy(self.pdf).correct(z['z']))
+
+        self.assignments.append(deepcopy(self.pdf).correct(None))
+        # Calculate etas by adding self.log_r
+        nll_etas = [- (self.log_r + pdf.log_eta_z) for pdf in self.assignments]
+        return nll_etas
 
     def nll_false(self):
         """

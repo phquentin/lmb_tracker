@@ -1,5 +1,8 @@
 import numpy as np
 from dataclasses import dataclass, field
+from typing import Callable
+from .murty import murty_wrapper
+from .gibbs_sampler import gibbs_sampler
 
 float_precision = 'f4'
 
@@ -21,13 +24,13 @@ class TrackerParameters():
     log_kappa: float = field(init=False)
     r_prun_th: float = 1e-3     # existence probability pruning threshold
     # observation noise covariance
-    R: np.ndarray = np.asarray([[10., 0.],
-                                [0., 10.]], dtype=float_precision)
+    R: np.ndarray = np.asarray([[2., 0.],
+                                [0., 2.]], dtype=float_precision)
     # process noise covariance
-    Q: np.ndarray = np.asarray([[5., 0., 10., 0.],
-                                [0., 5., 0., 10.],
-                                [10., 0., 20., 0.],
-                                [0., 10., 0., 20.]], dtype=float_precision)
+    Q: np.ndarray = np.asarray([[1., 0., 1., 0.],
+                                [0., 1., 0., 1.],
+                                [1., 0., 1., 0.],
+                                [0., 1., 0., 1.]], dtype=float_precision)
     # Motion model: state transition matrix
     F: np.ndarray = np.asarray([[1., 0., 1., 0.],
                                 [0., 1., 0., 1.],
@@ -37,10 +40,16 @@ class TrackerParameters():
     H: np.ndarray = np.asarray([[1., 0., 0., 0.],
                                 [0., 1., 0., 0.]], dtype=float_precision)
     # Initial state covariance matrix
-    P_init: np.ndarray = np.asarray([[100., 0., 0., 0.],
-                                    [0., 100., 0., 0.],
-                                    [0., 0., 100., 0.],
-                                    [0., 0., 0., 100.]], dtype=float_precision)
+    P_init: np.ndarray = np.asarray([[2., 0., 0., 0.],
+                                    [0., 2., 0., 0.],
+                                    [0., 0., 2., 0.],
+                                    [0., 0., 0., 2.]], dtype=float_precision)
+    # Algorithm used for solving the ranked assignment problem
+    ranked_assign: Callable[[np.ndarray, np.ndarray, int], None] = murty_wrapper
+
+    # Gibbs sampler parameters
+    num_samples: int = 1000  # Number of samples the Gibbs sampler takes from the eta_nll matrix
+    max_invalid_samples: int = 100 # Maximum number of consecutive invalid samples that do not contain a valid assignment after that the gibbs sampler terminates
 
     def __post_init__(self):
         """
@@ -58,7 +67,7 @@ class SimParameters():
     sim_length: int = 4   # number of simulation timesteps
     dim_x: int = 4 # Dimension (number) of state variables
     dim_z: int = 2 # Dimension of measured state variables
-    sigma: float = 2 # Standard deviation of measurement noise
+    sigma: float = 0 # Standard deviation of measurement noise
     max_d2: int = 10000 # Maximum squared euclidian distance for which py-motmetrics creates a hypothesis between a ground truth track and estimated track
 
     # State Transition matrix
@@ -82,6 +91,5 @@ class SimParameters():
                                           ('ts', 'u4')])
 
     # Array with state, birth and death information to generate tracks
-    init_track_info: np.ndarray = np.asarray ([([10, 10, 2, 2],0, 2, 1),
-                                                ([20, 50, 4, 5],0, 3, 2), 
-                                                ([20, 50, 4, 5],2, 5, 3)],dtype=dt_init_track_info)
+    init_track_info: np.ndarray = np.asarray ([([10, 10, 2, 2],0, 5, 1),
+                                                ([20, 50, 4, 5],0, 5, 2)],dtype=dt_init_track_info)

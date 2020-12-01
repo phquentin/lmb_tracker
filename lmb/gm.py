@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.special import logsumexp
+from scipy.stats import multivariate_normal
 
 class GM():
     """
@@ -130,13 +131,19 @@ class GM():
                 K = np.dot(cmpnt['P'], np.dot(self.H.T, S_inv))
                 self.mc[i]['x'] = cmpnt['x'] + np.dot(K, y)
                 self.mc[i]['P'] = cmpnt['P'] - np.dot(np.dot(K, S), K.T)
-                self.mc[i]['log_w'] = cmpnt['log_w'] - 0.5 * (2 * np.log(2 * np.pi) + np.log(np.linalg.det(S)) + np.dot(y, np.dot(S_inv, y)))
+                # Scipy computation for numerical stability. The self-implemented version
+                # is more computational efficient by reusing precomputed values.
+                self.mc[i]['log_w'] = cmpnt['log_w'] + multivariate_normal.logpdf(np.dot(self.H, cmpnt['x']), mean=z, cov=S)
+                #self.mc[i]['log_w'] = cmpnt['log_w'] - 0.5 * (len(y) * np.log(2 * np.pi) + np.log(np.linalg.det(S)) + np.dot(y.T, np.dot(S_inv, y)))
 
             # Normalization of mixture weights to receive updated weights
             self.log_w_sum = logsumexp(self.mc['log_w'])
             self.mc['log_w'] -= self.log_w_sum
             # Computation of log_likelihood of this target-measurement association
             self.log_eta_z = self.log_w_sum + self.log_p_detect - self.log_kappa
+        
+        return self
+
 
     def overwrite_with_merged_pdf(self, pdfs, log_hyp_weights):
         """

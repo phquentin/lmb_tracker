@@ -27,8 +27,14 @@ class LMB():
     def __init__(self, params=None):
         self.params = params if params else TrackerParameters()
         self.log_p_survival = np.log(self.params.p_survival)
+        self.ranked_assign = self.params.ranked_assign
+
         self.targets = [] # list of currently tracked targets
         self.targets.append(Target("0", pdf=GM(params=params)))
+        self.targets.append(Target("1", pdf=GM(params=params, x0=[20.,50.,0.,0.])))
+        self.targets.append(Target("2", pdf=GM(params=params, x0=[1.,-1.,0.,0.])))
+        self.targets.append(Target("3", pdf=GM(params=params, x0=[-10.,-10.,0.,0.])))
+        self.targets.append(Target("4", pdf=GM(params=params, x0=[10.,10.,0.,0.])))
 
     def update(self,z):
         """
@@ -71,21 +77,24 @@ class LMB():
         ## create association cost matrix with first column for death and second for missed detection
         ## (initialize with min prob --> high negative value due to log): 
         N = len(self.targets)
-        M = len(z)
+        M = len(z['z'])
         C = np.zeros((N, 2 + M))
         ## compute entries of cost matrix for each target-measurement association (including misdetection)
         for i, target in enumerate(self.targets):
-            # missed detection (column 1) and associations
-            C[i, 1:] = target.create_associations(z)
-            # died or not born
-            C[i, 0] = target.nll_false()
+            # associations and missed detection (second-last column)
+            C[i, range(M + 1)] = target.create_assignments(z)
+            # died or not born (last column)
+            C[i, (M + 1)] = target.nll_false()
 
-        ## Ranked assignment using Gibbs sampler
-        ## 2. Compute hypothesis weights using Gibbs sampler
+        ## Ranked assignment 
+        ## 2. Compute hypothesis weights using specified ranked assignment algorithm
+        hyp_weights = np.zeros((N, M + 2))
+        self.ranked_assign(C, hyp_weights)
+        hyp_weights = np.log(hyp_weights)
         ## 3. Calculate resulting existence probability of each target
-        # for target in self.targets:
-        #    target.correct(assignment_weights)
-        ## 3. Prune targets
+        for i, target in enumerate(self.targets):
+            target.correct(hyp_weights[i,:-1])
+        ## 4. Prune targets
         self._prune()
 
     def _prune(self):
