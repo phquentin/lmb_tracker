@@ -43,8 +43,6 @@ def murty_wrapper(C, assignment_weights, n_hyp=1000):
     # Test shape of extended cost matrix
     assert C_ext.shape[0] == C.shape[0]
     assert C_ext.shape[1] == (C.shape[1] - 2 + 2*C.shape[0])
-    # Test whether all entries in cost matrix are positive
-    assert np.all(C_ext >= 0.)
 
     nhyps = 0
     w_sum = 0
