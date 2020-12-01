@@ -27,6 +27,7 @@ class Target():
         self.pdf.predict()
         # Predict existence probability r
         self.log_r += log_p_survival
+        print('prediction: label ', self.label, 'log_r=',self.log_r, ' r=', np.exp(self.log_r))
 
     def correct(self, assignment_weights):
         """
@@ -42,7 +43,7 @@ class Target():
         """
         # 1.: self.log_r = sum of assignment weights
         self.log_r = logsumexp(assignment_weights)
-        print('log_r=',self.log_r, ' r=', np.exp(self.log_r))
+        print('corrected label ', self.label, 'log_r=',self.log_r, ' r=', np.exp(self.log_r))
         # 2.: Combine PDFs
         self.pdf.overwrite_with_merged_pdf(self.assignments, assignment_weights - self.log_r)
 

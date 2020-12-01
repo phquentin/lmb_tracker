@@ -31,7 +31,10 @@ class LMB():
 
         self.targets = [] # list of currently tracked targets
         self.targets.append(Target("0", pdf=GM(params=params)))
-        self.targets.append(Target("1", pdf=GM(params=params)))
+        self.targets.append(Target("1", pdf=GM(params=params, x0=[20.,50.,0.,0.])))
+        self.targets.append(Target("2", pdf=GM(params=params, x0=[1.,-1.,0.,0.])))
+        self.targets.append(Target("3", pdf=GM(params=params, x0=[-10.,-10.,0.,0.])))
+        self.targets.append(Target("4", pdf=GM(params=params, x0=[10.,10.,0.,0.])))
 
     def update(self,z):
         """
@@ -82,15 +85,15 @@ class LMB():
             C[i, range(M + 1)] = target.create_assignments(z)
             # died or not born
             C[i, (M + 1)] = target.nll_false()
-        print('C \n',C)
+            
         ## Ranked assignment 
         ## 2. Compute hypothesis weights using specified ranked assignment algorithm
-        hyp_weights = -500 * np.ones((N, M + 1))
+        hyp_weights = np.zeros((N, M + 2))
         self.ranked_assign(C, hyp_weights)
-        print('hyp_weights \n', hyp_weights)
+        hyp_weights = np.log(hyp_weights)
         ## 3. Calculate resulting existence probability of each target
         for i, target in enumerate(self.targets):
-            target.correct(hyp_weights[i, ])
+            target.correct(hyp_weights[i,:-1])
         ## 4. Prune targets
         self._prune()
 
