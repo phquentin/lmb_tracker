@@ -11,10 +11,11 @@ class TestGM(unittest.TestCase):
 
         self.params.dim_x = 4
         self.params.log_p_detect = np.log(0.99)
+        self.params.log_kappa = np.log(0.01)
         self.params.log_q_detect = np.log(1 - 0.99)
         # observation noise covariance
-        self.params.R: np.ndarray = np.asarray([[10., 0.],
-                                        [0., 10.]], dtype='f4')
+        self.params.R: np.ndarray = np.asarray([[0., 0.],
+                                        [0., 0.]], dtype='f4')
         # process noise covariance
         self.params.Q: np.ndarray = np.asarray([[5., 0., 10., 0.],
                                 [0., 5., 0., 10.],
@@ -29,10 +30,10 @@ class TestGM(unittest.TestCase):
         self.params.H: np.ndarray = np.asarray([[1., 0., 0., 0.],
                                 [0., 1., 0., 0.]], dtype='f4')
         # Initial state covariance matrix
-        self.params.P_init: np.ndarray = np.asarray([[100., 0., 0., 0.],
-                                    [0., 100., 0., 0.],
-                                    [0., 0., 100., 0.],
-                                    [0., 0., 0., 100.]], dtype='f4')
+        self.params.P_init: np.ndarray = np.asarray([[10., 0., 0., 0.],
+                                    [0., 10., 0., 0.],
+                                    [0., 0., 10., 0.],
+                                    [0., 0., 0., 10.]], dtype='f4')
         self.pdf = lmb.GM(self.params)
         self.pdf.mc = np.append(self.pdf.mc[0], self.pdf.mc[0])
         self.pdf.mc[0]['x'] = np.asarray([1., 0., 0.5, 0.5])
