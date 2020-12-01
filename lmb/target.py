@@ -62,6 +62,7 @@ class Target():
             Negative log-likelihood of computed etas (weights) of all target-measurement associations
         """
         # Compute PDFs and weights for each association and a missed detection
+        # TODO implementation using array with known size as optimization
         self.assignments = []
         for z in Z:
             self.assignments.append(deepcopy(self.pdf).correct(z['z']))

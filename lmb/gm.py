@@ -131,6 +131,8 @@ class GM():
                 K = np.dot(cmpnt['P'], np.dot(self.H.T, S_inv))
                 self.mc[i]['x'] = cmpnt['x'] + np.dot(K, y)
                 self.mc[i]['P'] = cmpnt['P'] - np.dot(np.dot(K, S), K.T)
+                # Scipy computation for numerical stability. The self-implemented version
+                # is more computational efficient by reusing precomputed values.
                 self.mc[i]['log_w'] = cmpnt['log_w'] + multivariate_normal.logpdf(np.dot(self.H, cmpnt['x']), mean=z, cov=S)
                 #self.mc[i]['log_w'] = cmpnt['log_w'] - 0.5 * (len(y) * np.log(2 * np.pi) + np.log(np.linalg.det(S)) + np.dot(y.T, np.dot(S_inv, y)))
 

@@ -81,11 +81,11 @@ class LMB():
         C = np.zeros((N, 2 + M))
         ## compute entries of cost matrix for each target-measurement association (including misdetection)
         for i, target in enumerate(self.targets):
-            # missed detection (column 1) and associations
+            # associations and missed detection (second-last column)
             C[i, range(M + 1)] = target.create_assignments(z)
-            # died or not born
+            # died or not born (last column)
             C[i, (M + 1)] = target.nll_false()
-            
+
         ## Ranked assignment 
         ## 2. Compute hypothesis weights using specified ranked assignment algorithm
         hyp_weights = np.zeros((N, M + 2))
