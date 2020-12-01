@@ -10,3 +10,4 @@ dependencies:
 - pip:
     - motmetrics
     - pytest
+    - lapjv
