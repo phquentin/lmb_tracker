@@ -15,6 +15,8 @@ class TrackerParameters():
     dim_z: int = 2              # Dimension (number) of measurement inputs
     n_targets_max: int = 1000   # maximum number of targets
     n_gm_cmpnts_max: int = 100  # maximum number of Gaussian mixture components
+    min_log_w: float = -2       # minimum log value of gaussian mixture weight for pruning 
+    sel_log_r: float = np.log(0.2) # minimum log value of gaussian mixture weight for pruning 
     p_survival: float = 0.99    # survival probability
     p_birth: float = 0.02       # birth probability
     p_detect: float = 0.99      # detection probability
@@ -64,7 +66,7 @@ class SimParameters():
     """
     Class containing the overall simulation parameters
     """                      
-    sim_length: int = 4   # number of simulation timesteps
+    sim_length: int = 6  # number of simulation timesteps
     dim_x: int = 4 # Dimension (number) of state variables
     dim_z: int = 2 # Dimension of measured state variables
     sigma: float = 0 # Standard deviation of measurement noise
@@ -91,5 +93,5 @@ class SimParameters():
                                           ('ts', 'u4')])
 
     # Array with state, birth and death information to generate tracks
-    init_track_info: np.ndarray = np.asarray ([([10, 10, 2, 2],0, 5, 1),
-                                                ([20, 50, 4, 5],0, 5, 2)],dtype=dt_init_track_info)
+    init_track_info: np.ndarray = np.asarray ([([10, 10, 2, 2],0, 21, 1),
+                                                ([20, 50, 4, 5],0, 21, 2)],dtype=dt_init_track_info)
