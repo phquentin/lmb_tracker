@@ -27,7 +27,6 @@ class Target():
         self.pdf.predict()
         # Predict existence probability r
         self.log_r += log_p_survival
-        print('prediction: label ', self.label, 'log_r=',self.log_r, ' r=', np.exp(self.log_r))
 
     def correct(self, assignment_weights):
         """
@@ -42,10 +41,9 @@ class Target():
             Computed hypothesis weights (in log-likelihood) from ranked assignment
         """
         # 1.: self.log_r = sum of assignment weights
-        self.log_r = logsumexp(assignment_weights)
-        print('corrected label ', self.label, 'log_r=',self.log_r, ' r=', np.exp(self.log_r))
+        self.log_r = np.log(sum(assignment_weights))
         # 2.: Combine PDFs
-        self.pdf.overwrite_with_merged_pdf(self.assignments, assignment_weights - self.log_r)
+        self.pdf.overwrite_with_merged_pdf(self.assignments, np.log(assignment_weights) - self.log_r)
 
     def create_assignments(self, Z):
         """
@@ -82,5 +80,5 @@ class Target():
         """
         String representation of object
         """
-        return "T({} / {}: {})".format(self.label, self.log_r, self.pdf.mc)
+        return "\nTarget {}: r={})".format(self.label, np.exp(self.log_r))
 
