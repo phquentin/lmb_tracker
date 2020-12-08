@@ -18,13 +18,15 @@ class TrackerParameters():
     min_log_w: float = -2       # minimum log value of gaussian mixture weight for pruning 
     sel_log_r: float = np.log(0.2) # minimum log value of gaussian mixture weight for pruning 
     p_survival: float = 0.99    # survival probability
-    p_birth: float = 0.02       # birth probability
+    p_birth: float = 0.2        # birth probability
+    adaptive_birth_th: float = 1e-3 # adaptive birth threshold
     p_detect: float = 0.99      # detection probability
     log_p_detect: float = field(init=False)
     log_q_detect: float = field(init=False)
     kappa: float = 0.01         # clutter intensity
     log_kappa: float = field(init=False)
-    r_prun_th: float = 1e-3     # existence probability pruning threshold
+    r_prun_th: float = 1e-2     # existence probability pruning threshold
+    log_r_prun_th: float = field(init=False)
     # observation noise covariance
     R: np.ndarray = np.asarray([[2., 0.],
                                 [0., 2.]], dtype=float_precision)
@@ -60,6 +62,7 @@ class TrackerParameters():
         object.__setattr__(self, 'log_p_detect', np.log(self.p_detect))
         object.__setattr__(self, 'log_q_detect', np.log(1 - self.p_detect))
         object.__setattr__(self, 'log_kappa', np.log(self.kappa))
+        object.__setattr__(self, 'log_r_prun_th', np.log(self.r_prun_th))
 
 @dataclass (frozen=True) 
 class SimParameters():

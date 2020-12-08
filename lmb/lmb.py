@@ -18,6 +18,12 @@ class LMB():
     ------
     params.log_p_survival : float
         Target survival probability as log-likelihood
+    params.p_birth : float
+        Maximum birth probability of targets
+    params.adaptive_birth_th : float
+        Birth probability threshold for existence probability of targets
+    params.log_r_prun_th : float
+        Log-likelihood threshold of target existence probability for pruning
 
     dtype_extract : numpy dtype
         dtype of the extracted targets
@@ -28,22 +34,26 @@ class LMB():
         List of currently active targets
     """
     def __init__(self, params=None):
+        self._ts = 0
         self.params = params if params else TrackerParameters()
         self.log_p_survival = np.log(self.params.p_survival)
+        self.p_birth = self.params.p_birth
+        self.adaptive_birth_th = self.params.adaptive_birth_th
+        self.log_r_prun_th = self.params.log_r_prun_th
         self.ranked_assign = self.params.ranked_assign
-
-        self.targets = [] # list of currently tracked targets
-        self.targets.append(Target(1, pdf=GM(params=params)))
-        self.targets.append(Target(2, pdf=GM(params=params, x0=[20.,50.,0.,0.])))
-        self.targets.append(Target(3, pdf=GM(params=params, x0=[1.,-1.,0.,0.])))
-        self.targets.append(Target(4, pdf=GM(params=params, x0=[-10.,-10.,0.,0.])))
-        self.targets.append(Target(5, pdf=GM(params=params, x0=[10.,10.,0.,0.])))
-
         self.dtype_exctract = np.dtype([('x', 'f4', self.params.dim_x),
                                         ('P', 'f4', (self.params.dim_x, self.params.dim_x)),
                                         ('r','f4'),
                                         ('label', 'u4')])
                         
+        self.targets = [] # list of currently tracked targets
+        self._spawn_target(log_r=0., x0=None)
+        self._spawn_target(log_r=0., x0=[20.,50.,0.,0.])
+        self._spawn_target(log_r=0., x0=[1.,-1.,0.,0.])
+        self._spawn_target(log_r=0., x0=[-10.,-10.,0.,0.])
+        self._spawn_target(log_r=0., x0=[10.,10.,0.,0.])
+
+
 
     def update(self,z):
         """
@@ -58,6 +68,9 @@ class LMB():
         out: array_like
             updated tracks
         """
+        self._ts += 1
+        print('Update step ', self._ts)
+
         self.predict()
         self.correct(z)
 
@@ -71,6 +84,9 @@ class LMB():
         """
         for target in self.targets:
             target.predict(self.log_p_survival)
+        
+        print('Predicted targets ', self.targets)
+
 
     def correct(self, z):
         """
@@ -99,22 +115,61 @@ class LMB():
         ## 2. Compute hypothesis weights using specified ranked assignment algorithm
         hyp_weights = np.zeros((N, M + 2))
         self.ranked_assign(C, hyp_weights)
-        hyp_weights = np.log(hyp_weights)
+        #hyp_weights = np.log(hyp_weights)
         ## 3. Calculate resulting existence probability of each target
         for i, target in enumerate(self.targets):
             target.correct(hyp_weights[i,:-1])
+
+        print('Corrected targets ', self.targets)
+        self._adaptive_birth(z, hyp_weights[:,:-2])
         ## 4. Prune targets
         self._prune()
+        print('Corrected, born, and pruned targets ', self.targets)
+
+
+    def _adaptive_birth(self, Z, assign_weights):
+        """
+        Adaptive birth of targets based on measurement
+
+        New targets are born at the measurement locations based on the 
+        assignment probabilities of these measurements: The higher the 
+        probability of a measurement being assign to any existing target,
+        the lower the birth probability of a new target at this position.
+
+        The implementation is based on the proposed algorithm in
+        S. Reuter et al., "The Labeled Multi-Bernoulli Filter", 2014
+
+        Parameters
+        ----------
+        Z : array_like
+            measurements
+        assign_weights : array_like
+            Weights of all track-measurement assignments (without missed detection or deaths)
+            Shape: num_tracks x num_measurements
+        """
+        # Probability of each measurement being assigned to an existing target
+        z_assign_prob = np.sum(assign_weights, axis=0)
+        not_assigned_sum = sum(1 - z_assign_prob)
+
+        if not_assigned_sum > 1e-9:
+            for z, prob in zip(Z, z_assign_prob):
+                # limit the birth existence probability to the configured p_birth
+                prob_birth = np.minimum(self.p_birth, (1 - prob)/not_assigned_sum)
+                # Spawn only new targets which exceed the existence prob threshold
+                if prob_birth > self.adaptive_birth_th:
+                    self._spawn_target(np.log(prob_birth), x0=[z['z'][0], z['z'][1], 0., 0.])
+
 
     def _prune(self):
         """
         Pruning of tracks
 
         Selection according to the configured pruning threshold for the existence probability.
-        Afterwards, limit the remaining tracks to the configured maximum number based on 
+        TODO: limit the remaining tracks to the configured maximum number based on 
         descending existence probability. 
         """
-        pass
+        self.targets = [t for t in self.targets if t.log_r > self.log_r_prun_th]
+
 
     def _select(self):
         """
@@ -131,11 +186,21 @@ class LMB():
         
         return selected_targets
 
-    def _spawn(self):
+    def _spawn_target(self, log_r, x0):
         """
         Spawn new target instances
+
+        Parameters
+        ----------
+        log_r : float
+            Log likelihood of initial existence probability
+        x0 : array_like
+            Initial state
         """
-        pass
+
+        label = '{}.{}'.format(self._ts, len(self.targets)) 
+        self.targets.append(Target(label, log_r=log_r, pdf=GM(params=self.params, x0=x0)))
+        
 
     def extract(self, selection):
 
@@ -152,3 +217,4 @@ class LMB():
       
 
         
+ 
