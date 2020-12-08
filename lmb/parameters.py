@@ -85,11 +85,11 @@ class SimParameters():
     dt_init_track_info: np.dtype = np.dtype([('x', 'f8',(dim_x)),
                                      ('birth_ts', 'u4'),
                                      ('death_ts', 'u4'),
-                                     ('label', 'u4')])
+                                     ('label', 'f4')])
     # Data type of tracks
     dt_tracks: np.dtype = np.dtype([('x', 'f8',(dim_x)),
                           ('ts', 'u4'),
-                          ('label', 'u4')])
+                          ('label', 'f4')])
 
     # Data type of measuerements
     dt_measurement: np.dtype = np.dtype([('z', 'f8',(dim_z)),

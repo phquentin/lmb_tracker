@@ -24,9 +24,10 @@ class LMB():
         Birth probability threshold for existence probability of targets
     params.log_r_prun_th : float
         Log-likelihood threshold of target existence probability for pruning
-
+    self.params.sel_log_r : float
+        Log-likelihood threshold of target existence probability for selection
     dtype_extract : numpy dtype
-        dtype of the extracted targets
+        Dtype of the extracted targets
 
     Attributes
     ----------
@@ -40,18 +41,19 @@ class LMB():
         self.p_birth = self.params.p_birth
         self.adaptive_birth_th = self.params.adaptive_birth_th
         self.log_r_prun_th = self.params.log_r_prun_th
+        self.sel_log_r = self.params.sel_log_r
         self.ranked_assign = self.params.ranked_assign
-        self.dtype_exctract = np.dtype([('x', 'f4', self.params.dim_x),
+        self.dtype_extract = np.dtype([('x', 'f4', self.params.dim_x),
                                         ('P', 'f4', (self.params.dim_x, self.params.dim_x)),
                                         ('r','f4'),
-                                        ('label', 'u4')])
+                                        ('label', 'f4')])
                         
         self.targets = [] # list of currently tracked targets
         self._spawn_target(log_r=0., x0=None)
         self._spawn_target(log_r=0., x0=[20.,50.,0.,0.])
         self._spawn_target(log_r=0., x0=[1.,-1.,0.,0.])
         self._spawn_target(log_r=0., x0=[-10.,-10.,0.,0.])
-        self._spawn_target(log_r=0., x0=[10.,10.,0.,0.])
+        self._spawn_target(log_r=0., x0=[10.,10.,0.,0.]) 
 
 
 
@@ -173,18 +175,21 @@ class LMB():
 
     def _select(self):
         """
-        Select tracks based on existence probability
+        Select targets whose existence probabilty r is greater than the threshold sel_log_r
 
-        Computes the most likely number of tracks and selects for this number of tracks the Gaussian
-        mixture component with the highest weight of the tracks with the highest existence probability.
+        TODO: Compute the most likely cardinality (number) of targets and select the corresponding number of targets
+        with the highest existence probability.
+
+        Returns
+        -------
+        out: list
+            selected targets
         """
 
-        #select_mask = [target.log_r > self.params.sel_log_r for target in self.targets]
-        #(d for d, s in izip(data, selectors) if s)
         selected_targets = [target for target in self.targets if target.log_r > self.params.sel_log_r]
-        print(len(selected_targets))
-        
+      
         return selected_targets
+
 
     def _spawn_target(self, log_r, x0):
         """
@@ -200,20 +205,36 @@ class LMB():
 
         label = '{}.{}'.format(self._ts, len(self.targets)) 
         self.targets.append(Target(label, log_r=log_r, pdf=GM(params=self.params, x0=x0)))
-        
 
-    def extract(self, selection):
 
-        extracted_tracks = np.zeros(len(selection), dtype=self.dtype_exctract)   
+    def extract(self, selected_targets):
+        """
+        Extract selected targets from the LMB class instance 
 
-        for i, target in enumerate(selection):
+        Extract the selected targets with their labels, exitence probabilities and their states x
+        and covariances P of their corresponding most likley gaussian mixture
+
+        Parameters
+        ----------
+        selected_targets : list
+            List of class Targets instances
+
+        Returns
+        -------
+        out: ndarry
+            Ndarray of dtype: self.dtype_extract
+        """
+
+        extracted_targets = np.zeros(len(selected_targets), dtype=self.dtype_extract)   
+
+        for i, target in enumerate(selected_targets):
             mc_extract_ind = np.argmax(target.pdf.mc['log_w'])
-            extracted_tracks[i]['x'] = target.pdf.mc[mc_extract_ind]['x']
-            extracted_tracks[i]['P'] = target.pdf.mc[mc_extract_ind]['P']
-            extracted_tracks[i]['r'] = target.log_r
-            extracted_tracks[i]['label'] = target.label
+            extracted_targets[i]['x'] = target.pdf.mc[mc_extract_ind]['x']
+            extracted_targets[i]['P'] = target.pdf.mc[mc_extract_ind]['P']
+            extracted_targets[i]['r'] = target.log_r
+            extracted_targets[i]['label'] = target.label
            
-        return extracted_tracks      
+        return extracted_targets      
       
 
         

@@ -28,6 +28,8 @@ class GM():
         Inverse of detection probability as log-likelihood
     params.log_kappa : float
         Clutter intensity as log-likelihood
+    params.min_log_w
+        Log-likelihood threshold of gaussian mixture weight for pruning 
     x0 : numpy.array(dim_x) optional
         Initial state estimate
     prior_mc : numpy.array (dtype=self.dtype_mc), optional
@@ -54,6 +56,7 @@ class GM():
         self.log_p_detect = self.params.log_p_detect
         self.log_q_detect = self.params.log_q_detect
         self.log_kappa = self.params.log_kappa
+        self.min_log_w = self.params.min_log_w
         # data type of mixture component entry
         self.dtype_mc = np.dtype([('log_w', 'f8'),
                                 ('x', 'f4', self.dim_x),
@@ -174,10 +177,11 @@ class GM():
 
     def _prune_gaussians(self):
         '''
-        Prune gaussian mixture components weights which are lower than a defined threshold
+        Prune gaussian mixture components whose weights are lower than the defined threshold self.min_log_w
         '''
+
         # Pruning
-        prune_mask = self.mc['log_w'] > self.params.min_log_w
+        prune_mask = self.mc['log_w'] > self.min_log_w
         self.mc = self.mc[prune_mask] 
 
         # Normalize after pruning. This may not be necessary depending on the extraction logic; relative weights may be okay 
