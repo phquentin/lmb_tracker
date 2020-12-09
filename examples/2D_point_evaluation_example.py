@@ -21,6 +21,7 @@ def main():
 
     for ts in range(sim_params.sim_length):
         tracker_est = tracker.update(measurement_history[measurement_history['ts']==ts])
+
         tracker_est_ts = np.zeros(len(tracker_est),dtype=sim_params.dt_tracks)
         tracker_est_ts['ts'] = ts
         tracker_est_ts['label'] = tracker_est['label']

@@ -13,7 +13,7 @@ class TestGM(unittest.TestCase):
         self.params.log_p_detect = np.log(0.99)
         self.params.log_kappa = np.log(0.01)
         self.params.log_q_detect = np.log(1 - 0.99)
-        self.params.min_log_w = np.log(0.01)
+        self.params.log_w_prun_th = np.log(0.01)
         # observation noise covariance
         self.params.R: np.ndarray = np.asarray([[0., 0.],
                                         [0., 0.]], dtype='f4')
@@ -97,7 +97,7 @@ class TestGM(unittest.TestCase):
 
         mc_prior = deepcopy(self.pdf)
         pdfs = [self.pdf, mc_prior]
-        log_weights = [-np.log(0.75), -np.log(0.25)]
+        log_weights = [np.log(0.75), np.log(0.25)]
         len_mc_pdfs = np.sum([len(pdf.mc) for pdf in pdfs])
         self.pdf.overwrite_with_merged_pdf(pdfs, log_weights)
 
@@ -110,10 +110,10 @@ class TestGM(unittest.TestCase):
         self.pdf = lmb.GM(self.params, prior_mc= np.zeros(3, dtype=self.params.dtype_mc)) 
         self.pdf.mc[0]['log_w'] = np.log(0.009)
         self.pdf.mc[1]['log_w'] = np.log(0.5)
-        self.pdf.mc[2]['log_w'] = np.log(0.6)
+        self.pdf.mc[2]['log_w'] = np.log(0.491)
 
         self.pdf._prune_gaussians()
-        # Test wether pruning was succesfull
+        # Test whether pruning was successful
         self.assertEqual(len(self.pdf.mc), 2)
         # Test whether mixture component weights sum up to 1
         self.assertAlmostEqual(np.sum(np.exp(self.pdf.mc['log_w'])), 1.)

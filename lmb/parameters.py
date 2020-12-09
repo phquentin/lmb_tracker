@@ -15,8 +15,8 @@ class TrackerParameters():
     dim_z: int = 2              # Dimension (number) of measurement inputs
     n_targets_max: int = 1000   # maximum number of targets
     n_gm_cmpnts_max: int = 100  # maximum number of Gaussian mixture components
-    min_log_w: float = -2       # minimum log value of gaussian mixture weight for pruning 
-    sel_log_r: float = np.log(0.2) # minimum log value of gaussian mixture weight for pruning 
+    log_w_prun_th: float = -2       # Log-likelihood threshold of gaussian mixture weight for pruning 
+    log_r_sel_th: float = np.log(0.2) # Log-likelihood threshold of target existence probability for selection
     p_survival: float = 0.99    # survival probability
     p_birth: float = 0.2        # birth probability
     adaptive_birth_th: float = 1e-3 # adaptive birth threshold
