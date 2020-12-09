@@ -13,6 +13,7 @@ class TestGM(unittest.TestCase):
         self.params.log_p_detect = np.log(0.99)
         self.params.log_kappa = np.log(0.01)
         self.params.log_q_detect = np.log(1 - 0.99)
+        self.params.log_w_prun_th = np.log(0.01)
         # observation noise covariance
         self.params.R: np.ndarray = np.asarray([[0., 0.],
                                         [0., 0.]], dtype='f4')
@@ -34,6 +35,12 @@ class TestGM(unittest.TestCase):
                                     [0., 10., 0., 0.],
                                     [0., 0., 10., 0.],
                                     [0., 0., 0., 10.]], dtype='f4')
+
+        self.params.dtype_mc: np.dtype = np.dtype([('log_w', 'f8'),
+                                                   ('x', 'f4', self.params.dim_x),
+                                                   ('P', 'f4', (self.params.dim_x, self.params.dim_x))])
+        
+    def test_predict(self):
         self.pdf = lmb.GM(self.params)
         self.pdf.mc = np.append(self.pdf.mc[0], self.pdf.mc[0])
         self.pdf.mc[0]['x'] = np.asarray([1., 0., 0.5, 0.5])
@@ -41,7 +48,6 @@ class TestGM(unittest.TestCase):
         self.pdf.mc[0]['log_w'] = np.log(1 / len(self.pdf.mc))
         self.pdf.mc[1]['log_w'] = np.log(1 / len(self.pdf.mc))
 
-    def test_predict(self):
         mc_prior = deepcopy(self.pdf.mc)
         self.pdf.predict()
         # Test states
@@ -53,6 +59,13 @@ class TestGM(unittest.TestCase):
         self.assertEqual(self.pdf.mc['P'].shape, mc_prior['P'].shape)
 
     def test_correct(self):
+        self.pdf = lmb.GM(self.params)
+        self.pdf.mc = np.append(self.pdf.mc[0], self.pdf.mc[0])
+        self.pdf.mc[0]['x'] = np.asarray([1., 0., 0.5, 0.5])
+        self.pdf.mc[1]['x'] = np.asarray([-5., 0., -1., 2])
+        self.pdf.mc[0]['log_w'] = np.log(1 / len(self.pdf.mc))
+        self.pdf.mc[1]['log_w'] = np.log(1 / len(self.pdf.mc))
+
         mc_prior = deepcopy(self.pdf.mc)
         z = np.asarray([0, -1])
         self.pdf.correct(z)
@@ -75,6 +88,13 @@ class TestGM(unittest.TestCase):
         self.assertAlmostEqual(self.pdf.log_eta_z, prior.log_w_sum + self.params.log_q_detect)
 
     def test_overwrite_with_merged_pdf(self):
+        self.pdf = lmb.GM(self.params)
+        self.pdf.mc = np.append(self.pdf.mc[0], self.pdf.mc[0])
+        self.pdf.mc[0]['x'] = np.asarray([1., 0., 0.5, 0.5])
+        self.pdf.mc[1]['x'] = np.asarray([-5., 0., -1., 2])
+        self.pdf.mc[0]['log_w'] = np.log(1 / len(self.pdf.mc))
+        self.pdf.mc[1]['log_w'] = np.log(1 / len(self.pdf.mc))
+
         mc_prior = deepcopy(self.pdf)
         pdfs = [self.pdf, mc_prior]
         log_weights = [np.log(0.75), np.log(0.25)]
@@ -83,5 +103,17 @@ class TestGM(unittest.TestCase):
 
         # Test number of resulting mixture components
         self.assertEqual(len(self.pdf.mc), len_mc_pdfs)
+        # Test whether mixture component weights sum up to 1
+        self.assertAlmostEqual(np.sum(np.exp(self.pdf.mc['log_w'])), 1.)
+
+    def test_prune(self):
+        self.pdf = lmb.GM(self.params, prior_mc= np.zeros(3, dtype=self.params.dtype_mc)) 
+        self.pdf.mc[0]['log_w'] = np.log(0.009)
+        self.pdf.mc[1]['log_w'] = np.log(0.5)
+        self.pdf.mc[2]['log_w'] = np.log(0.491)
+
+        self.pdf._prune_gaussians()
+        # Test whether pruning was successful
+        self.assertEqual(len(self.pdf.mc), 2)
         # Test whether mixture component weights sum up to 1
         self.assertAlmostEqual(np.sum(np.exp(self.pdf.mc['log_w'])), 1.)

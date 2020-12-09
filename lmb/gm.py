@@ -28,6 +28,8 @@ class GM():
         Inverse of detection probability as log-likelihood
     params.log_kappa : float
         Clutter intensity as log-likelihood
+    params.log_w_prun_th
+        Log-likelihood threshold of gaussian mixture weight for pruning 
     x0 : numpy.array(dim_x) optional
         Initial state estimate
     prior_mc : numpy.array (dtype=self.dtype_mc), optional
@@ -54,6 +56,7 @@ class GM():
         self.log_p_detect = self.params.log_p_detect
         self.log_q_detect = self.params.log_q_detect
         self.log_kappa = self.params.log_kappa
+        self.log_w_prun_th = self.params.log_w_prun_th
         # data type of mixture component entry
         self.dtype_mc = np.dtype([('log_w', 'f8'),
                                 ('x', 'f4', self.dim_x),
@@ -61,7 +64,7 @@ class GM():
         if prior_mc is not None and prior_mc.dtype == self.dtype_mc:
             self.mc = prior_mc
         else:
-            # init list of mixture components with one Gaussian
+            # init ndarray of mixture components with one Gaussian
             self.mc = np.zeros(1, dtype=self.dtype_mc)
             self.mc[0]['log_w'] = 0.0
             self.mc[0]['x'] = x0 if x0 is not None else np.zeros(self.dim_x)
@@ -141,7 +144,7 @@ class GM():
             self.mc['log_w'] -= self.log_w_sum
             # Computation of log_likelihood of this target-measurement association
             self.log_eta_z = self.log_w_sum + self.log_p_detect - self.log_kappa
-        
+
         return self
 
 
@@ -156,16 +159,32 @@ class GM():
         log_hyp_weights : array_like
             Normalized hypothesis weights of the PDFs in log representation
         """
+        
         # Normalize mixture component weights
         mcs = [pdf.mc for pdf in pdfs]
         for log_hyp_weight, mc in zip(log_hyp_weights, mcs):
             mc['log_w'] += log_hyp_weight
 
         self.mc = np.concatenate(mcs)
-            
+        self._prune_gaussians()
 
     def merge_gaussians(self):
         """
         Merge Gaussian Mixture components which are closer than a defined threshold
         """
         pass
+
+    def _prune_gaussians(self):
+        '''
+        Prune gaussian mixture components whose weights are lower than the defined threshold self.log_w_prun_th
+        '''
+
+        # Pruning
+        prune_mask = self.mc['log_w'] > self.log_w_prun_th
+        self.mc = self.mc[prune_mask] 
+
+        # Normalize after pruning. This may not be necessary depending on the extraction logic; relative weights may be okay 
+        self.log_w_sum = logsumexp(self.mc['log_w'])
+        self.mc['log_w'] -= self.log_w_sum
+
+        

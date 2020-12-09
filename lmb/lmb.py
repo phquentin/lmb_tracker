@@ -14,7 +14,7 @@ class LMB():
         Parameter object containing all tracker parameters required by all subclasses.
         Gets initialized with default parameters, in case no object is passed.
     
-    LMB-Class specific Paramters
+    LMB-Class specific Parameters
     ------
     params.log_p_survival : float
         Target survival probability as log-likelihood
@@ -24,6 +24,10 @@ class LMB():
         Birth probability threshold for existence probability of targets
     params.log_r_prun_th : float
         Log-likelihood threshold of target existence probability for pruning
+    self.params.log_r_sel_th : float
+        Log-likelihood threshold of target existence probability for selection
+    dtype_extract : numpy dtype
+        Dtype of the extracted targets
 
     Attributes
     ----------
@@ -37,14 +41,22 @@ class LMB():
         self.p_birth = self.params.p_birth
         self.adaptive_birth_th = self.params.adaptive_birth_th
         self.log_r_prun_th = self.params.log_r_prun_th
+        self.log_r_sel_th = self.params.log_r_sel_th
         self.ranked_assign = self.params.ranked_assign
-
+        self.dtype_extract = np.dtype([('x', 'f4', self.params.dim_x),
+                                       ('P', 'f4', (self.params.dim_x, self.params.dim_x)),
+                                       ('r','f4'),
+                                       ('label', 'f4'),
+                                       ('ts','f4')])
+                        
         self.targets = [] # list of currently tracked targets
         self._spawn_target(log_r=0., x0=None)
         self._spawn_target(log_r=0., x0=[20.,50.,0.,0.])
         self._spawn_target(log_r=0., x0=[1.,-1.,0.,0.])
         self._spawn_target(log_r=0., x0=[-10.,-10.,0.,0.])
-        self._spawn_target(log_r=0., x0=[10.,10.,0.,0.])
+        self._spawn_target(log_r=0., x0=[10.,10.,0.,0.]) 
+
+
 
     def update(self,z):
         """
@@ -56,16 +68,21 @@ class LMB():
 
         Returns
         -------
-        out: array_like
-            updated tracks
+        out: ndarray
+            updated and extracted targets of the format : np.dtype([('x', 'f4', dim_x),
+                                                                    ('P', 'f4', (dim_x, dim_x)),
+                                                                    ('r','f4'),
+                                                                    ('label', 'f4'),
+                                                                    ('ts','f4')])
         """
+        
         self._ts += 1
         print('Update step ', self._ts)
 
         self.predict()
         self.correct(z)
 
-        return self.select()
+        return self.extract(self._select())
 
     def predict(self):
         """
@@ -162,14 +179,23 @@ class LMB():
         self.targets = [t for t in self.targets if t.log_r > self.log_r_prun_th]
 
 
-    def select(self):
+    def _select(self):
         """
-        Select tracks based on existence probability
+        Select targets whose existence probabilty r is greater than the threshold log_r_sel_th
 
-        Computes the most likely number of tracks and selects for this number of tracks the Gaussian
-        mixture component with the highest weight of the tracks with the highest existence probability.
+        TODO: Compute the most likely cardinality (number) of targets and select the corresponding number of targets
+        with the highest existence probability.
+
+        Returns
+        -------
+        out: list
+            selected targets
         """
-        pass
+
+        selected_targets = [target for target in self.targets if target.log_r > self.params.log_r_sel_th]
+      
+        return selected_targets
+
 
     def _spawn_target(self, log_r, x0):
         """
@@ -182,5 +208,41 @@ class LMB():
         x0 : array_like
             Initial state
         """
+
         label = '{}.{}'.format(self._ts, len(self.targets)) 
         self.targets.append(Target(label, log_r=log_r, pdf=GM(params=self.params, x0=x0)))
+
+
+    def extract(self, selected_targets):
+        """
+        Extract selected targets from the LMB class instance 
+
+        Extract the selected targets with their labels, existence probabilities and their states x
+        and covariances P of their corresponding most likely gaussian mixture component.
+
+        Parameters
+        ----------
+        selected_targets : list
+            List of class Targets instances
+
+        Returns
+        -------
+        out: ndarry
+            Ndarray of dtype: self.dtype_extract
+        """
+
+        extracted_targets = np.zeros(len(selected_targets), dtype=self.dtype_extract)   
+
+        for i, target in enumerate(selected_targets):
+            mc_extract_ind = np.argmax(target.pdf.mc['log_w'])
+            extracted_targets[i]['x'] = target.pdf.mc[mc_extract_ind]['x']
+            extracted_targets[i]['P'] = target.pdf.mc[mc_extract_ind]['P']
+            extracted_targets[i]['r'] = np.exp(target.log_r)
+            extracted_targets[i]['label'] = target.label
+            extracted_targets[i]['ts'] = self._ts
+           
+        return extracted_targets      
+      
+
+        
+ 
