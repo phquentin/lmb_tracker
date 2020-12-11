@@ -11,3 +11,6 @@ __pycache__/
 .vscode
 settings.json
 *.code-workspace
+
+### folders ###
+eval_results

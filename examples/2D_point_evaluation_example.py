@@ -29,7 +29,9 @@ def main():
 
         tracker_est_history = np.concatenate((tracker_est_history, tracker_est_ts))
 
-    lmb.evaluate_point_2D(gt_target_track_history, tracker_est_history, sim_params.max_d2)
+    mot_summary = lmb.evaluate_2D_point(gt_target_track_history, tracker_est_history, sim_params.max_d2)
+
+    lmb.plot_2D_point_results(gt_target_track_history, measurement_history, tracker_est_history, mot_summary)
 
 if __name__ == '__main__':
     main()

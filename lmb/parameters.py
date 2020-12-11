@@ -69,7 +69,7 @@ class SimParameters():
     """
     Class containing the overall simulation parameters
     """                      
-    sim_length: int = 6  # number of simulation timesteps
+    sim_length: int = 8  # number of simulation timesteps
     dim_x: int = 4 # Dimension (number) of state variables
     dim_z: int = 2 # Dimension of measured state variables
     sigma: float = 0 # Standard deviation of measurement noise
@@ -96,5 +96,5 @@ class SimParameters():
                                           ('ts', 'u4')])
 
     # Array with state, birth and death information to generate tracks
-    init_track_info: np.ndarray = np.asarray ([([10, 10, 2, 2],0, 21, 1),
-                                                ([20, 50, 4, 5],0, 21, 2)],dtype=dt_init_track_info)
+    init_track_info: np.ndarray = np.asarray ([([10, 10, 2, 2],0, 21, 1.0),
+                                                ([20, 50, 4, 5],0, 21, 2.0)],dtype=dt_init_track_info)

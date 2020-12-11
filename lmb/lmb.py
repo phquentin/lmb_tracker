@@ -52,7 +52,7 @@ class LMB():
         self.targets = [] # list of currently tracked targets
         self._spawn_target(log_r=0., x0=None)
         self._spawn_target(log_r=0., x0=[20.,50.,0.,0.])
-        self._spawn_target(log_r=0., x0=[1.,-1.,0.,0.])
+        self._spawn_target(log_r=0., x0=[30, 30,0.,0.])
         self._spawn_target(log_r=0., x0=[-10.,-10.,0.,0.])
         self._spawn_target(log_r=0., x0=[10.,10.,0.,0.]) 
 
