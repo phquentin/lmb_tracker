@@ -15,7 +15,7 @@ class TrackerParameters():
     dim_z: int = 2              # Dimension (number) of measurement inputs
     n_targets_max: int = 1000   # maximum number of targets
     n_gm_cmpnts_max: int = 100  # maximum number of Gaussian mixture components
-    log_w_prun_th: float = -2       # Log-likelihood threshold of gaussian mixture weight for pruning 
+    log_w_prun_th: float = np.log(0.2)       # Log-likelihood threshold of gaussian mixture weight for pruning 
     log_r_sel_th: float = np.log(0.2) # Log-likelihood threshold of target existence probability for selection
     p_survival: float = 0.99    # survival probability
     p_birth: float = 0.2        # birth probability
@@ -25,7 +25,7 @@ class TrackerParameters():
     log_q_detect: float = field(init=False)
     kappa: float = 0.01         # clutter intensity
     log_kappa: float = field(init=False)
-    r_prun_th: float = 1e-2     # existence probability pruning threshold
+    r_prun_th: float = 0.05    # existence probability pruning threshold
     log_r_prun_th: float = field(init=False)
     # observation noise covariance
     R: np.ndarray = np.asarray([[2., 0.],
@@ -69,11 +69,11 @@ class SimParameters():
     """
     Class containing the overall simulation parameters
     """                      
-    sim_length: int = 8  # number of simulation timesteps
+    sim_length: int = 9  # number of simulation timesteps
     dim_x: int = 4 # Dimension (number) of state variables
     dim_z: int = 2 # Dimension of measured state variables
     sigma: float = 0 # Standard deviation of measurement noise
-    max_d2: int = 10000 # Maximum squared euclidian distance for which py-motmetrics creates a hypothesis between a ground truth track and estimated track
+    max_d2: int = 1000**2 # Maximum squared euclidian distance for which py-motmetrics creates a hypothesis between a ground truth track and estimated track
 
     # State Transition matrix
     F: np.ndarray = np.asarray([[1,0,1,0],
@@ -89,7 +89,8 @@ class SimParameters():
     # Data type of tracks
     dt_tracks: np.dtype = np.dtype([('x', 'f8',(dim_x)),
                           ('ts', 'u4'),
-                          ('label', 'f4')])
+                          ('label', 'f4'),
+                          ('r', 'f4')])
 
     # Data type of measuerements
     dt_measurement: np.dtype = np.dtype([('z', 'f8',(dim_z)),
@@ -97,4 +98,6 @@ class SimParameters():
 
     # Array with state, birth and death information to generate tracks
     init_track_info: np.ndarray = np.asarray ([([10, 10, 2, 2],0, 21, 1.0),
-                                                ([20, 50, 4, 5],0, 21, 2.0)],dtype=dt_init_track_info)
+                                               ([20, 50, 4, 5],0, 21, 2.0),
+                                               ([35, 40, -3, -4],0, 21, 3.0),
+                                               ([30, 90, 2, -4],0, 21, 4.0)],dtype=dt_init_track_info)
