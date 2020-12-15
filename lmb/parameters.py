@@ -97,7 +97,8 @@ class SimParameters():
                                           ('ts', 'u4')])
 
     # Array with state, birth and death information to generate tracks
-    init_track_info: np.ndarray = np.asarray ([([10, 10, 2, 2],0, 21, 1.0),
-                                               ([20, 50, 4, 5],0, 21, 2.0),
-                                               ([35, 40, -3, -4],0, 21, 3.0),
-                                               ([30, 90, 2, -4],0, 21, 4.0)],dtype=dt_init_track_info)
+    init_track_info: np.ndarray = np.asarray([([10, 10, 2, 2],0, 7, 1.0),
+                                              ([20, 50, 4, 5],0, 21, 2.0),
+                                              ([35, 40, -3, -4],0, 21, 3.0),
+                                              ([30, 90, 2, -4],0, 21, 4.0)],dtype=dt_init_track_info)
+
