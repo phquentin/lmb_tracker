@@ -56,16 +56,16 @@ def create2D_point_report(tracks_gt, tracks_est, mot_summary, mot_ts_results):
     Generates:
 
         - a plot showing the ground truth tracks and track estimates in the two 
-          2D plane for the complete evaluation time with a table containg the 
-          correspoding MOT-metric results.
+          2D plane for the complete evaluation time with a table containing the 
+          corresponding MOT-metric results.
 
         - a plot showing the ground truth tracks and track estimates in 3D 
           (third dimension is the time step) for the complete evaluation time with 
-          a table containg the correspoding MOT-metric results.
+          a table containing the corresponding MOT-metric results.
 
-        - a plot for each timestep showing the ground truth tracks till that
-          timestep, the track estimates for that time step and a corresponding
-          table containing the MOT-events for that timestep.
+        - a plot for each time step showing the ground truth tracks till that
+          time step, the track estimates for that time step and a corresponding
+          table containing the MOT-events for that time step.
     
     TODO: - incorporate clutter
           - connect markers 
