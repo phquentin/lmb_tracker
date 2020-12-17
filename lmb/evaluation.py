@@ -1,16 +1,18 @@
-import motmetrics as mm
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib import cm
-from numpy import linspace
 import os
-from matplotlib.backends.backend_pdf import PdfPages
-from datetime import datetime
-import matplotlib.lines as mlines
+import numpy as np
+from numpy import linspace
 import copy
+from datetime import datetime
+
+import matplotlib.pyplot as plt
+import matplotlib.lines as mlines
+from matplotlib import cm
+from matplotlib.backends.backend_pdf import PdfPages
+
+import motmetrics as mm
 
 
-def evaluate_2D_point(tracks_gt, tracks_est, max_d2, plot = False):
+def evaluate_point_2D(tracks_gt, tracks_est, max_d2, plot = False):
     """
     Evaluates tracker results by MOT Challenge metrics for 2D point tracking problems
     
@@ -24,6 +26,12 @@ def evaluate_2D_point(tracks_gt, tracks_est, max_d2, plot = False):
 
     max_d2: int 
         Maximum squared euclidian distance for which py-motmetrics creates a hypothesis between a ground truth track and estimated track   
+
+    Returns
+    -------
+    out: (pandas.DataFrame, list of pandas.DataFrame)
+        (Contains the MOT-metric results for the complete evaluation time, 
+         Contains the MOT-events for each times step of the complete evaluation time)
     """
 
     acc = mm.MOTAccumulator(auto_id=True)
@@ -49,9 +57,10 @@ def evaluate_2D_point(tracks_gt, tracks_est, max_d2, plot = False):
     return(mot_summary, mot_ts_results)
 
 
-def create2D_point_report(tracks_gt, tracks_est, mot_summary, mot_ts_results):
+def create_report_point_2D(tracks_gt, tracks_est, mot_summary, mot_ts_results):
     """
-    Creates a pdf evaluation report for multi-target 2D point tracking problems. 
+    Creates a pdf evaluation report for multi-target 2D point tracking problems
+    and saves it in /examples/eval_results
 
     Generates:
 
@@ -197,7 +206,6 @@ def create2D_point_report(tracks_gt, tracks_est, mot_summary, mot_ts_results):
 
             # create table
             ax1 = fig.add_subplot(gs[9:12,1:-1])
-            print(type(ax1))
             ax1.axis('off')
             ax1.table(cellText=cells, colLabels=cols, loc='center', cellLoc='center')
 
