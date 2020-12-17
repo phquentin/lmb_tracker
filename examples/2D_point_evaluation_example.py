@@ -26,10 +26,12 @@ def main():
         tracker_est_ts['ts'] = ts
         tracker_est_ts['label'] = tracker_est['label']
         tracker_est_ts['x'] = tracker_est['x']
+        tracker_est_ts['r'] = tracker_est['r']
 
         tracker_est_history = np.concatenate((tracker_est_history, tracker_est_ts))
 
-    lmb.evaluate_point_2D(gt_target_track_history, tracker_est_history, sim_params.max_d2)
+    mot_summary, mot_ts_results = lmb.evaluate_point_2D(gt_target_track_history, tracker_est_history, sim_params.max_d2)
+    lmb.create_report_point_2D(gt_target_track_history, tracker_est_history, mot_summary, mot_ts_results)
 
 if __name__ == '__main__':
     main()
