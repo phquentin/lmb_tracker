@@ -1,8 +1,10 @@
+from operator import attrgetter
 import numpy as np
 
 from .parameters import TrackerParameters
 from .target import Target
 from .gm import GM
+from .utils import esf
 
 class LMB():
     """
@@ -16,6 +18,8 @@ class LMB():
     
     LMB-Class specific Parameters
     ------
+    params.n_targets_max : int
+        Maximum number of targets
     params.log_p_survival : float
         Target survival probability as log-likelihood
     params.p_birth : float
@@ -37,6 +41,7 @@ class LMB():
     def __init__(self, params=None):
         self._ts = 0
         self.params = params if params else TrackerParameters()
+        self.n_targets_max = self.params.n_targets_max
         self.log_p_survival = np.log(self.params.p_survival)
         self.p_birth = self.params.p_birth
         self.adaptive_birth_th = self.params.adaptive_birth_th
@@ -50,7 +55,7 @@ class LMB():
                                        ('ts','f4')])
                         
         self.targets = [] # list of currently tracked targets
-        self._spawn_target(log_r=0., x0=None)
+        self._spawn_target(log_r=np.log(self.p_birth), x0=None)
         #self._spawn_target(log_r=0., x0=[20.,50.,0.,0.])
         #self._spawn_target(log_r=0., x0=[30, 30,0.,0.])
         #self._spawn_target(log_r=0., x0=[-10.,-10.,0.,0.])
@@ -128,7 +133,7 @@ class LMB():
         for i, target in enumerate(self.targets):
             target.correct(hyp_weights[i,:-1])
 
-        print('Corrected targets ', self.targets)
+        #print('Corrected targets ', self.targets)
         self._adaptive_birth(z, hyp_weights[:,:-2])
         ## 4. Prune targets
         self._prune()
@@ -181,19 +186,36 @@ class LMB():
 
     def _select(self):
         """
-        Select targets whose existence probabilty r is greater than the threshold log_r_sel_th
+        Select the most likely tracks
 
-        TODO: Compute the most likely cardinality (number) of targets and select the corresponding number of targets
-        with the highest existence probability.
+        Compute the most likely cardinality (number) of targets and 
+        select the corresponding number of targets with the highest existence probability.
 
         Returns
         -------
         out: list
             selected targets
         """
+        # exclude the targets born in this update step
+        selected_targets = [t for t in self.targets if t.label.split('.')[0] != str(self._ts)]
+        # get the existence probabilities of the targets
+        r = [np.exp(t.log_r) for t in selected_targets]
+        r = np.asarray(r)
+        r = np.minimum(r, 1. - 1e-9)
+        r = np.maximum(r, 1e-9)
+        # Calculate the cardinality
+        cdn_list = np.prod(1.0 - r) * esf(r / (1. - r))
+        cdn = np.argmax(cdn_list)
+        #print("Rvect ", r)
+        #print("Cardinality list: ", cdn_list)
+        #print("Cardinality: ", cdn)
+        num_tracks = min(cdn, self.n_targets_max)
 
-        selected_targets = [target for target in self.targets if target.log_r > self.params.log_r_sel_th]
-      
+        selected_targets.sort(key=attrgetter('log_r'), reverse=True)
+        selected_targets = selected_targets[:num_tracks]
+
+        print("Selected targets: ", selected_targets)
+
         return selected_targets
 
 
