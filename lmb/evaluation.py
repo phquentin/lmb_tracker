@@ -1,4 +1,5 @@
 import os
+from shutil import copyfile
 import numpy as np
 from numpy import linspace
 from datetime import datetime
@@ -56,6 +57,42 @@ def evaluate_point_2D(tracks_gt, tracks_est, max_d2, plot = False):
     return(mot_summary, mot_ts_results)
 
 
+def prepare_results_dir(unique_dir_name):
+    """
+    Creates the results folder and saves the filter parameter file into it.
+
+    Parameters
+    ----------
+    unique_dir_name: str
+        Unique name of the folder storing the results
+
+    Returns
+    -------
+    out: str
+        Relative path of the created folder
+    """
+    results_folder = 'eval_results'
+    
+    # check for directory eval_results, if not there create it
+    if not os.path.isdir(results_folder):
+        os.mkdir(results_folder)
+
+    dir_name = os.path.join(results_folder, unique_dir_name)
+    # check for directory of results, if not there create it
+    if not os.path.isdir(dir_name):
+        os.mkdir(dir_name)
+    
+    # Copy filter parameter file into results directory
+    param_dir = 'lmb'
+    param_file = 'parameters.py'
+    try:
+        copyfile(os.path.join(param_dir, param_file), os.path.join(dir_name, param_file))
+    except(FileNotFoundError):
+        print("Parameter file {} not found. Unable to copy.".format(os.path.join(param_dir, param_file)))
+    
+    return dir_name
+
+
 def create_report_point_2D(tracks_gt, tracks_est, mot_summary, mot_ts_results):
     """
     Creates a pdf evaluation report for multi-target 2D point tracking problems
@@ -98,17 +135,14 @@ def create_report_point_2D(tracks_gt, tracks_est, mot_summary, mot_ts_results):
     cm_subsection = linspace(0.0, 1.0, NUM_COLORS) 
     colors = [cm.Set1(x) for x in cm_subsection]
     
-    # check for directory eval_results, if not there create it
-    if not os.path.isdir('eval_results'):
-        os.mkdir('eval_results')
-
     # create report name
     current_date = datetime.now()
     date_time = current_date.strftime("%Y_%m_%d_%H-%M-%S")
-    report_name = 'eval_results/eval_report_{}.pdf'.format(date_time)
+    report_dir = prepare_results_dir(date_time)
+    report_name = 'eval_report_{}.pdf'.format(date_time)
    
    # create pdf report
-    with PdfPages(report_name) as pdf:
+    with PdfPages(os.path.join(report_dir, report_name)) as pdf:
 
         gt_marker = mlines.Line2D([], [], color='k',marker='o',linestyle='dashed', linewidth=1, markersize=4, label='ground truth')
         track_marker = mlines.Line2D([], [], color='k',marker='x',linestyle='dashed', linewidth=1, markersize=4, label='track estimate')
