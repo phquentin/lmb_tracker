@@ -67,10 +67,6 @@ def create_report_point_2D(tracks_gt, tracks_est, mot_summary, mot_ts_results):
           2D plane for the complete evaluation time with a table containing the 
           corresponding MOT-metric results.
 
-        - a plot showing the ground truth tracks and track estimates in 3D 
-          (third dimension is the time step) for the complete evaluation time with 
-          a table containing the corresponding MOT-metric results.
-
         - a plot for each time step showing the ground truth tracks till that
           time step, the track estimates for that time step and a corresponding
           table containing the MOT-events for that time step.
@@ -117,7 +113,7 @@ def create_report_point_2D(tracks_gt, tracks_est, mot_summary, mot_ts_results):
         gt_marker = mlines.Line2D([], [], color='k',marker='o',linestyle='dashed', linewidth=1, markersize=4, label='ground truth')
         track_marker = mlines.Line2D([], [], color='k',marker='x',linestyle='dashed', linewidth=1, markersize=4, label='track estimate')
 
-        # MOT-metrics info for overall 2D/3D table generation
+        # MOT-metrics info for overall 2D table generation
         cols = ['MOTA', 'MOTP', 'FP',  'FN', 'IDs']
 
         # 2D list: consecutive list represent rows, elements wihtin one list represent columns
