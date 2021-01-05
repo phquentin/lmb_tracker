@@ -30,6 +30,8 @@ class GM():
         Clutter intensity as log-likelihood
     params.log_w_prun_th
         Log-likelihood threshold of gaussian mixture weight for pruning 
+    params.mc_merging_dist_th
+        Merging threshold of squared Mahalanobis distance between two mixture components
     x0 : numpy.array(dim_x) optional
         Initial state estimate
     prior_mc : numpy.array (dtype=self.dtype_mc), optional
@@ -57,6 +59,7 @@ class GM():
         self.log_q_detect = self.params.log_q_detect
         self.log_kappa = self.params.log_kappa
         self.log_w_prun_th = self.params.log_w_prun_th
+        self.mc_merging_dist_th = self.params.mc_merging_dist_th
         # data type of mixture component entry
         self.dtype_mc = np.dtype([('log_w', 'f8'),
                                 ('x', 'f4', self.dim_x),
@@ -166,13 +169,69 @@ class GM():
             mc['log_w'] += log_hyp_weight
 
         self.mc = np.concatenate(mcs)
-        self._prune_gaussians()
 
-    def merge_gaussians(self):
+
+    def reduce_pdf(self):
+        """
+        Reduce the complexity of the PDF by pruning and merging
+        """
+        self._prune_gaussians()
+        self._merge_gaussians()
+
+
+    def _merge_gaussians(self):
         """
         Merge Gaussian Mixture components which are closer than a defined threshold
+
+        All mixture components are compared with eachother. Components with a 
+        squared Mahalanobis distance below a specified value are combined
+        into one mixture component by averaging their mean and covariance weighed
+        by their component weights.
+        
+        The algorithm uses an acceptance mask on the existing mixture components 
+        to avoid creating new component objects.
         """
-        pass
+        num_cmpnts = len(self.mc)
+        mc_ids = np.arange(num_cmpnts)
+
+        accept_mask = np.zeros(num_cmpnts, dtype=bool) 
+        process_mask = np.ones(num_cmpnts, dtype=bool) 
+
+        sort_ids = np.argsort(self.mc['log_w'])[::-1]  
+        
+        for cmpnt_id in sort_ids:
+            if process_mask[cmpnt_id]:
+                if np.count_nonzero(process_mask) > 1:
+                    P_inv = np.linalg.inv(self.mc[cmpnt_id]['P'])
+                    # init merge mask with False
+                    merge_mask = np.zeros(len(self.mc[process_mask]), dtype=bool)
+                    # Compare current component with all unprocessed components
+                    for i, cmpnt in enumerate(self.mc[process_mask]):
+                        diff = self.mc[cmpnt_id]['x'] - cmpnt['x']
+                        # Squared Mahalanobis distance
+                        dist = np.dot(diff, np.dot(P_inv, diff))
+                        if dist < self.mc_merging_dist_th: 
+                            merge_mask[i] = True
+
+                    # Merging just with itself is skipped
+                    if np.count_nonzero(merge_mask) > 1: 
+                        merge_ids = mc_ids[process_mask][merge_mask]
+
+                        # Merge Gaussian mixture components by averaging
+                        weights = np.exp(self.mc[merge_ids]['log_w'])
+                        x_new = np.average(self.mc[merge_ids]['x'], weights=weights, axis=0)
+                        P_new = np.average(self.mc[merge_ids]['P'], weights=weights, axis=0)
+                        self.mc[cmpnt_id]['log_w'] = np.log(sum(weights))
+                        self.mc[cmpnt_id]['x'] = x_new
+                        self.mc[cmpnt_id]['P'] = P_new
+
+                        process_mask[merge_ids] = False
+                
+                process_mask[cmpnt_id] = False
+                accept_mask[cmpnt_id] = True
+
+        self.mc = self.mc[accept_mask]
+
 
     def _prune_gaussians(self):
         '''

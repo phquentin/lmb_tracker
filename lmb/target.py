@@ -44,6 +44,8 @@ class Target():
         self.log_r = np.log(sum(assignment_weights))
         # 2.: Combine PDFs
         self.pdf.overwrite_with_merged_pdf(self.assignments, np.log(assignment_weights) - self.log_r)
+        # 3.: Reduce complexity of PDF
+        self.pdf.reduce_pdf()
 
     def create_assignments(self, Z):
         """

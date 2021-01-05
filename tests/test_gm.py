@@ -14,6 +14,7 @@ class TestGM(unittest.TestCase):
         self.params.log_kappa = np.log(0.01)
         self.params.log_q_detect = np.log(1 - 0.99)
         self.params.log_w_prun_th = np.log(0.01)
+        self.params.mc_merging_dist_th = 1
         # observation noise covariance
         self.params.R: np.ndarray = np.asarray([[0., 0.],
                                         [0., 0.]], dtype='f4')
@@ -117,3 +118,39 @@ class TestGM(unittest.TestCase):
         self.assertEqual(len(self.pdf.mc), 2)
         # Test whether mixture component weights sum up to 1
         self.assertAlmostEqual(np.sum(np.exp(self.pdf.mc['log_w'])), 1.)
+
+    def test_merge(self):
+        # set threshold to 1, so component 0 and 2 should be merged
+        self.params.mc_merging_dist_th = 1
+        self.pdf = lmb.GM(self.params, prior_mc= np.zeros(3, dtype=self.params.dtype_mc)) 
+
+        self.pdf.mc[0]['x'] = np.asarray([0., 0., 0., 0.])
+        self.pdf.mc[1]['x'] = np.asarray([-5., 0., -1., 2.])
+        self.pdf.mc[2]['x'] = np.asarray([1., 0., 2., 2.])
+        self.pdf.mc[0]['log_w'] = np.log(0.5)
+        self.pdf.mc[1]['log_w'] = np.log(0.25)
+        self.pdf.mc[2]['log_w'] = np.log(0.25)
+        self.pdf.mc['P'] = self.params.P_init
+        
+        # manually calculate the weighted sum of states
+        weights = [np.exp(self.pdf.mc[0]['log_w']), np.exp(self.pdf.mc[2]['log_w'])]
+        sum_weights = sum(weights)
+        x_0_new = (self.pdf.mc[0]['x'][0] * weights[0] \
+            + self.pdf.mc[2]['x'][0] * weights[1]) / sum_weights
+        x_1_new = (self.pdf.mc[0]['x'][1] * weights[0] \
+            + self.pdf.mc[2]['x'][1] * weights[1]) / sum_weights
+
+        prior = deepcopy(self.pdf)
+        self.pdf._merge_gaussians()
+
+        # Test whether pruning was successful
+        self.assertEqual(len(self.pdf.mc), 2)
+        # Test whether mixture component weights sum up to 1
+        self.assertAlmostEqual(np.sum(np.exp(self.pdf.mc['log_w'])), 1.)
+
+        self.assertAlmostEqual(self.pdf.mc[0]['x'][0], x_0_new)
+        self.assertAlmostEqual(self.pdf.mc[0]['x'][1], x_1_new)
+
+        self.assertTrue(np.allclose(self.pdf.mc[1]['x'], prior.mc[1]['x']))
+        self.assertTrue(np.allclose(self.pdf.mc[1]['P'], prior.mc[1]['P']))
+        self.assertTrue(np.allclose(self.pdf.mc[1]['log_w'], prior.mc[1]['log_w']))
