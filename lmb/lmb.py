@@ -190,6 +190,11 @@ class LMB():
 
         Compute the most likely cardinality (number) of targets and 
         select the corresponding number of targets with the highest existence probability.
+        The cardinality is obtained by computing the cardinality distribution of
+        the multi-Bernoulli RFS and selecting the cardinality with highest probability.
+
+        TODO: the mean cardinality of a multi-Bernulli RFS can be obtained by sum(r).
+        The applicability for the selection step should be investigated. 
 
         Returns
         -------
@@ -203,13 +208,10 @@ class LMB():
         r = np.asarray(r)
         r = np.minimum(r, 1. - 1e-9)
         r = np.maximum(r, 1e-9)
-        # Calculate the cardinality
-        cdn_list = np.prod(1.0 - r) * esf(r / (1. - r))
-        cdn = np.argmax(cdn_list)
-        #print("Rvect ", r)
-        #print("Cardinality list: ", cdn_list)
-        #print("Cardinality: ", cdn)
-        num_tracks = min(cdn, self.n_targets_max)
+        # Calculate the cardinality distribution of the multi-Bernoulli RFS
+        cdn_dist = np.prod(1.0 - r) * esf(r / (1. - r))
+        est_cdn = np.argmax(cdn_dist)
+        num_tracks = min(est_cdn, self.n_targets_max)
 
         selected_targets.sort(key=attrgetter('log_r'), reverse=True)
         selected_targets = selected_targets[:num_tracks]
