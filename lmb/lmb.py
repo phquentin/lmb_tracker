@@ -143,7 +143,7 @@ class LMB():
 
         New targets are born at the measurement locations based on the 
         assignment probabilities of these measurements: The higher the 
-        probability of a measurement being assign to any existing target,
+        probability of a measurement being assigned to any existing target,
         the lower the birth probability of a new target at this position.
 
         The implementation is based on the proposed algorithm in
@@ -163,8 +163,13 @@ class LMB():
 
         if not_assigned_sum > 1e-9:
             for z, prob in zip(Z, z_assign_prob):
+                # Set lambda_b to the mean cardinality of the birth multi-Bernoulli RFS
+                # This results in setting the birth prob to (1 - prob_assign).
+                self.lambda_b = not_assigned_sum
                 # limit the birth existence probability to the configured p_birth
-                prob_birth = np.minimum(self.p_birth, (1 - prob)/not_assigned_sum)
+                prob_birth = np.minimum(self.p_birth, self.lambda_b * (1 - prob)/not_assigned_sum)
+                ## Debug output:
+                # print("sum ", not_assigned_sum, " assign prob ", prob, " prob_birth ", prob_birth)
                 # Spawn only new targets which exceed the existence prob threshold
                 if prob_birth > self.adaptive_birth_th:
                     self._spawn_target(np.log(prob_birth), x0=[z['z'][0], z['z'][1], 0., 0.])

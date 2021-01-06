@@ -14,13 +14,13 @@ class TrackerParameters():
     dim_x: int = 4              # Dimension (number) of states
     dim_z: int = 2              # Dimension (number) of measurement inputs
     n_targets_max: int = 1000   # maximum number of targets
-    n_gm_cmpnts_max: int = 100  # maximum number of Gaussian mixture components
-    log_w_prun_th: float = np.log(0.2)       # Log-likelihood threshold of gaussian mixture weight for pruning 
-    log_r_sel_th: float = np.log(0.2) # Log-likelihood threshold of target existence probability for selection
+    n_gm_cmpnts_max: int = 20  # maximum number of Gaussian mixture components
+    log_w_prun_th: float = np.log(0.1)       # Log-likelihood threshold of gaussian mixture weight for pruning 
+    log_r_sel_th: float = np.log(0.4) # Log-likelihood threshold of target existence probability for selection
     p_survival: float = 0.99    # survival probability
-    p_birth: float = 0.2        # birth probability
-    adaptive_birth_th: float = 1e-3 # adaptive birth threshold
-    p_detect: float = 0.99      # detection probability
+    p_birth: float = 0.6        # birth probability
+    adaptive_birth_th: float = 0.05 # adaptive birth threshold
+    p_detect: float = 0.9      # detection probability
     log_p_detect: float = field(init=False)
     log_q_detect: float = field(init=False)
     kappa: float = 0.01         # clutter intensity
@@ -69,7 +69,7 @@ class SimParameters():
     """
     Class containing the overall simulation parameters
     """                      
-    sim_length: int = 9  # number of simulation timesteps
+    sim_length: int = 14  # number of simulation timesteps
     dim_x: int = 4 # Dimension (number) of state variables
     dim_z: int = 2 # Dimension of measured state variables
     sigma: float = 0 # Standard deviation of measurement noise
@@ -97,7 +97,7 @@ class SimParameters():
                                           ('ts', 'u4')])
 
     # Array with state, birth and death information to generate tracks
-    init_track_info: np.ndarray = np.asarray([([10, 10, 2, 2],0, 7, 1.0),
+    init_track_info: np.ndarray = np.asarray([([10, 10, 2, 2],0, 12, 1.0),
                                               ([20, 50, 4, 5],0, 21, 2.0),
                                               ([35, 40, -3, -4],0, 21, 3.0),
                                               ([30, 90, 2, -4],0, 21, 4.0)],dtype=dt_init_track_info)
