@@ -133,7 +133,6 @@ class LMB():
         for i, target in enumerate(self.targets):
             target.correct(hyp_weights[i,:-1])
 
-        #print('Corrected targets ', self.targets)
         self._adaptive_birth(z, hyp_weights[:,:-2])
         ## 4. Prune targets
         self._prune()
@@ -186,7 +185,7 @@ class LMB():
 
     def _select(self):
         """
-        Select the most likely tracks
+        Select the most likely targets
 
         Compute the most likely cardinality (number) of targets and 
         select the corresponding number of targets with the highest existence probability.
@@ -206,6 +205,7 @@ class LMB():
         # get the existence probabilities of the targets
         r = [np.exp(t.log_r) for t in selected_targets]
         r = np.asarray(r)
+        # limit the existence probabilities for numerical stability (avoiding divide by 0)
         r = np.minimum(r, 1. - 1e-9)
         r = np.maximum(r, 1e-9)
         # Calculate the cardinality distribution of the multi-Bernoulli RFS
