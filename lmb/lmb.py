@@ -55,12 +55,6 @@ class LMB():
                                        ('ts','f4')])
                         
         self.targets = [] # list of currently tracked targets
-        self._spawn_target(log_r=np.log(self.p_birth), x0=None)
-        #self._spawn_target(log_r=0., x0=[20.,50.,0.,0.])
-        #self._spawn_target(log_r=0., x0=[30, 30,0.,0.])
-        #self._spawn_target(log_r=0., x0=[-10.,-10.,0.,0.])
-        #self._spawn_target(log_r=0., x0=[10.,10.,0.,0.]) 
-
 
 
     def update(self,z):
@@ -116,22 +110,26 @@ class LMB():
         ## (initialize with min prob --> high negative value due to log): 
         N = len(self.targets)
         M = len(z['z'])
-        C = np.zeros((N, 2 + M))
-        ## compute entries of cost matrix for each target-measurement association (including misdetection)
-        for i, target in enumerate(self.targets):
-            # associations and missed detection (second-last column)
-            C[i, range(M + 1)] = target.create_assignments(z)
-            # died or not born (last column)
-            C[i, (M + 1)] = target.nll_false()
+        if N > 0:
+            C = np.zeros((N, 2 + M))
+            ## compute entries of cost matrix for each target-measurement association (including misdetection)
+            for i, target in enumerate(self.targets):
+                # associations and missed detection (second-last column)
+                C[i, range(M + 1)] = target.create_assignments(z)
+                # died or not born (last column)
+                C[i, (M + 1)] = target.nll_false()
 
-        ## Ranked assignment 
-        ## 2. Compute hypothesis weights using specified ranked assignment algorithm
-        hyp_weights = np.zeros((N, M + 2))
-        self.ranked_assign(C, hyp_weights)
-        #hyp_weights = np.log(hyp_weights)
-        ## 3. Calculate resulting existence probability of each target
-        for i, target in enumerate(self.targets):
-            target.correct(hyp_weights[i,:-1])
+            ## Ranked assignment 
+            ## 2. Compute hypothesis weights using specified ranked assignment algorithm
+            hyp_weights = np.zeros((N, M + 2))
+            self.ranked_assign(C, hyp_weights)
+            ## 3. Calculate resulting existence probability of each target
+            for i, target in enumerate(self.targets):
+                target.correct(hyp_weights[i,:-1])
+
+        else:
+            # No tracked targets yet, set all assignment weights to 0
+            hyp_weights = np.zeros((1, M + 2))
 
         self._adaptive_birth(z, hyp_weights[:,:-2])
         ## 4. Prune targets
@@ -267,6 +265,3 @@ class LMB():
            
         return extracted_targets      
       
-
-        
- 
