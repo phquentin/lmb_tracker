@@ -30,6 +30,8 @@ class LMB():
         Log-likelihood threshold of target existence probability for pruning
     self.params.log_r_sel_th : float
         Log-likelihood threshold of target existence probability for selection
+    self.params.num_assignments : int
+        Maximum number of hypothetical assignments created by the ranked assignment
     dtype_extract : numpy dtype
         Dtype of the extracted targets
 
@@ -48,6 +50,7 @@ class LMB():
         self.log_r_prun_th = self.params.log_r_prun_th
         self.log_r_sel_th = self.params.log_r_sel_th
         self.ranked_assign = self.params.ranked_assign
+        self.ranked_assign_num = self.params.num_assignments
         self.dtype_extract = np.dtype([('x', 'f4', self.params.dim_x),
                                        ('P', 'f4', (self.params.dim_x, self.params.dim_x)),
                                        ('r','f4'),
@@ -122,7 +125,7 @@ class LMB():
             ## Ranked assignment 
             ## 2. Compute hypothesis weights using specified ranked assignment algorithm
             hyp_weights = np.zeros((N, M + 2))
-            self.ranked_assign(C, hyp_weights)
+            self.ranked_assign(C, hyp_weights, self.ranked_assign_num)
             ## 3. Calculate resulting existence probability of each target
             for i, target in enumerate(self.targets):
                 target.correct(hyp_weights[i,:-1])

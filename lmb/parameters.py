@@ -16,6 +16,7 @@ class TrackerParameters():
     n_targets_max: int = 1000   # maximum number of targets
     n_gm_cmpnts_max: int = 20  # maximum number of Gaussian mixture components
     log_w_prun_th: float = np.log(0.1)       # Log-likelihood threshold of gaussian mixture weight for pruning 
+    mc_merging_dist_th: float = 3 # Merging threshold of squared Mahalanobis distance between two mixture components 
     log_r_sel_th: float = np.log(0.4) # Log-likelihood threshold of target existence probability for selection
     p_survival: float = 0.99    # survival probability
     p_birth: float = 0.6        # birth probability
@@ -28,8 +29,8 @@ class TrackerParameters():
     r_prun_th: float = 0.05    # existence probability pruning threshold
     log_r_prun_th: float = field(init=False)
     # observation noise covariance
-    R: np.ndarray = np.asarray([[2., 0.],
-                                [0., 2.]], dtype=float_precision)
+    R: np.ndarray = np.asarray([[1., 0.],
+                                [0., 1.]], dtype=float_precision)
     # process noise covariance
     Q: np.ndarray = np.asarray([[1., 0., 1., 0.],
                                 [0., 1., 0., 1.],
@@ -50,6 +51,7 @@ class TrackerParameters():
                                     [0., 0., 0., 2.]], dtype=float_precision)
     # Algorithm used for solving the ranked assignment problem
     ranked_assign: Callable[[np.ndarray, np.ndarray, int], None] = murty_wrapper
+    num_assignments: int = 1000 # Maximum number of hypothetical assignments created by the ranked assignment
 
     # Gibbs sampler parameters
     num_samples: int = 1000  # Number of samples the Gibbs sampler takes from the eta_nll matrix
