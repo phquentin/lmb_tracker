@@ -58,12 +58,6 @@ class LMB():
                                        ('ts','f4')])
                         
         self.targets = [] # list of currently tracked targets
-        self._spawn_target(log_r=np.log(self.p_birth), x0=None)
-        #self._spawn_target(log_r=0., x0=[20.,50.,0.,0.])
-        #self._spawn_target(log_r=0., x0=[30, 30,0.,0.])
-        #self._spawn_target(log_r=0., x0=[-10.,-10.,0.,0.])
-        #self._spawn_target(log_r=0., x0=[10.,10.,0.,0.]) 
-
 
 
     def update(self,z):
@@ -119,22 +113,26 @@ class LMB():
         ## (initialize with min prob --> high negative value due to log): 
         N = len(self.targets)
         M = len(z['z'])
-        C = np.zeros((N, 2 + M))
-        ## compute entries of cost matrix for each target-measurement association (including misdetection)
-        for i, target in enumerate(self.targets):
-            # associations and missed detection (second-last column)
-            C[i, range(M + 1)] = target.create_assignments(z)
-            # died or not born (last column)
-            C[i, (M + 1)] = target.nll_false()
+        if N > 0:
+            C = np.zeros((N, 2 + M))
+            ## compute entries of cost matrix for each target-measurement association (including misdetection)
+            for i, target in enumerate(self.targets):
+                # associations and missed detection (second-last column)
+                C[i, range(M + 1)] = target.create_assignments(z)
+                # died or not born (last column)
+                C[i, (M + 1)] = target.nll_false()
 
-        ## Ranked assignment 
-        ## 2. Compute hypothesis weights using specified ranked assignment algorithm
-        hyp_weights = np.zeros((N, M + 2))
-        self.ranked_assign(C, hyp_weights, self.ranked_assign_num)
-        #hyp_weights = np.log(hyp_weights)
-        ## 3. Calculate resulting existence probability of each target
-        for i, target in enumerate(self.targets):
-            target.correct(hyp_weights[i,:-1])
+            ## Ranked assignment 
+            ## 2. Compute hypothesis weights using specified ranked assignment algorithm
+            hyp_weights = np.zeros((N, M + 2))
+            self.ranked_assign(C, hyp_weights, self.ranked_assign_num)
+            ## 3. Calculate resulting existence probability of each target
+            for i, target in enumerate(self.targets):
+                target.correct(hyp_weights[i,:-1])
+
+        else:
+            # No tracked targets yet, set all assignment weights to 0
+            hyp_weights = np.zeros((1, M + 2))
 
         self._adaptive_birth(z, hyp_weights[:,:-2])
         ## 4. Prune targets
@@ -148,7 +146,7 @@ class LMB():
 
         New targets are born at the measurement locations based on the 
         assignment probabilities of these measurements: The higher the 
-        probability of a measurement being assign to any existing target,
+        probability of a measurement being assigned to any existing target,
         the lower the birth probability of a new target at this position.
 
         The implementation is based on the proposed algorithm in
@@ -168,8 +166,13 @@ class LMB():
 
         if not_assigned_sum > 1e-9:
             for z, prob in zip(Z, z_assign_prob):
+                # Set lambda_b to the mean cardinality of the birth multi-Bernoulli RFS
+                # This results in setting the birth prob to (1 - prob_assign).
+                self.lambda_b = not_assigned_sum
                 # limit the birth existence probability to the configured p_birth
-                prob_birth = np.minimum(self.p_birth, (1 - prob)/not_assigned_sum)
+                prob_birth = np.minimum(self.p_birth, self.lambda_b * (1 - prob)/not_assigned_sum)
+                ## Debug output:
+                # print("sum ", not_assigned_sum, " assign prob ", prob, " prob_birth ", prob_birth)
                 # Spawn only new targets which exceed the existence prob threshold
                 if prob_birth > self.adaptive_birth_th:
                     self._spawn_target(np.log(prob_birth), x0=[z['z'][0], z['z'][1], 0., 0.])
@@ -270,6 +273,3 @@ class LMB():
            
         return extracted_targets      
       
-
-        
- 
