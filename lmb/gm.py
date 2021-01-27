@@ -194,8 +194,8 @@ class GM():
         num_cmpnts = len(self.mc)
         mc_ids = np.arange(num_cmpnts)
 
-        accept_mask = np.zeros(num_cmpnts, dtype=bool) 
-        process_mask = np.ones(num_cmpnts, dtype=bool) 
+        accept_mask = np.zeros(num_cmpnts, dtype=bool) # mask of accepted components
+        process_mask = np.ones(num_cmpnts, dtype=bool) # mask of components to be processed
 
         sort_ids = np.argsort(self.mc['log_w'])[::-1]  
         
