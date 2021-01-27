@@ -14,13 +14,14 @@ class TrackerParameters():
     dim_x: int = 4              # Dimension (number) of states
     dim_z: int = 2              # Dimension (number) of measurement inputs
     n_targets_max: int = 1000   # maximum number of targets
-    n_gm_cmpnts_max: int = 100  # maximum number of Gaussian mixture components
-    log_w_prun_th: float = np.log(0.2)       # Log-likelihood threshold of gaussian mixture weight for pruning 
-    log_r_sel_th: float = np.log(0.2) # Log-likelihood threshold of target existence probability for selection
-    p_survival: float = 0.99    # survival probability
+    n_gm_cmpnts_max: int = 25  # maximum number of Gaussian mixture components
+    log_w_prun_th: float = np.log(0.05)       # Log-likelihood threshold of gaussian mixture weight for pruning
+    mc_merging_dist_th: float = 3 # Merging threshold of squared Mahalanobis distance between two mixture components 
+    log_r_sel_th: float = np.log(0.3) # Log-likelihood threshold of target existence probability for selection
+    p_survival: float = 0.9    # survival probability
     p_birth: float = 0.2        # birth probability
-    adaptive_birth_th: float = 1e-3 # adaptive birth threshold
-    p_detect: float = 0.99      # detection probability
+    adaptive_birth_th: float = 0.01 # adaptive birth threshold
+    p_detect: float = 0.9      # detection probability
     log_p_detect: float = field(init=False)
     log_q_detect: float = field(init=False)
     kappa: float = 0.01         # clutter intensity
@@ -28,8 +29,8 @@ class TrackerParameters():
     r_prun_th: float = 0.05    # existence probability pruning threshold
     log_r_prun_th: float = field(init=False)
     # observation noise covariance
-    R: np.ndarray = np.asarray([[2., 0.],
-                                [0., 2.]], dtype=float_precision)
+    R: np.ndarray = np.asarray([[1., 0.],
+                                [0., 1.]], dtype=float_precision)
     # process noise covariance
     Q: np.ndarray = np.asarray([[1., 0., 1., 0.],
                                 [0., 1., 0., 1.],
@@ -98,7 +99,7 @@ class SimParameters():
 
     # Array with state, birth and death information to generate tracks
     init_track_info: np.ndarray = np.asarray([([10, 10, 2, 2],0, 7, 1.0),
-                                              ([20, 50, 4, 5],0, 21, 2.0),
-                                              ([35, 40, -3, -4],0, 21, 3.0),
-                                              ([30, 90, 2, -4],0, 21, 4.0)],dtype=dt_init_track_info)
+                                              ([20, 50, 2, 2.5],0, 21, 2.0),
+                                              ([35, 40, -1.5, -2],0, 21, 3.0),
+                                              ([30, 90, 1, -2],0, 21, 4.0)],dtype=dt_init_track_info)
 
