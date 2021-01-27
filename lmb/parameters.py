@@ -51,6 +51,7 @@ class TrackerParameters():
                                     [0., 0., 0., 2.]], dtype=float_precision)
     # Algorithm used for solving the ranked assignment problem
     ranked_assign: Callable[[np.ndarray, np.ndarray, int], None] = murty_wrapper
+    num_assignments: int = 1000 # Maximum number of hypothetical assignments created by the ranked assignment
 
     # Gibbs sampler parameters
     num_samples: int = 1000  # Number of samples the Gibbs sampler takes from the eta_nll matrix
