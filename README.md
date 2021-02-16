@@ -27,5 +27,12 @@ Using the `develop` option instead of `install` creates a symbolic link towards 
 ## Example
 To run an example of tracking multiple points in a 2D plane, activate the repository environment, `cd` into the directory /examples and run `python3 2D_point_evaluation_example.py`. Find the corresponding evaluation report in the created directory /eval_results. 
 
+The evaluation report contains a page with the overall results, showing a plot with the trajectories of the ground truth tracks (black dots - with a bigger last dot to indicate the movement direction) and tracks estimated by the tracker (colored crosses) as well as common MOT metrics. Exemplary page of the overall results:
+![](./doc/Overall_results_in_2D.png)<br/>
+
+Furthermore, the report contains a page for every time step showing a plot of the ground truth and estimated tracks up to that time step, the estimated existence probabilities as well as the corresponding MOT events for that time step. Exemplary page for a time step:
+![](./doc/Time_step_2.png)<br/>
+
+
 ## License
 This software is released under the GPLv3 license.
